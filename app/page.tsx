@@ -20,18 +20,18 @@ export default function Home() {
       {/* Hero */}
       <section className="mx-auto grid max-w-7xl items-center gap-12 px-4 pb-16 pt-14 sm:px-6 lg:grid-cols-[1.1fr_1fr] lg:pt-24 [&>*]:min-w-0">
         <div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-5">
             <Image
               src="/me.jpg"
               alt={`Portrait of ${profile.name}`}
-              width={72}
-              height={72}
+              width={96}
+              height={96}
               priority
               unoptimized
-              className="size-16 shrink-0 rounded-full object-cover shadow-[var(--shadow-lift)] ring-4 ring-card sm:size-[72px]"
+              className="size-20 shrink-0 rounded-full object-cover shadow-[var(--shadow-lift)] ring-4 ring-card sm:size-24"
             />
             <div>
-              <div className="font-display text-xl sm:text-2xl">{profile.name}</div>
+              <div className="font-display text-2xl sm:text-3xl">{profile.name}</div>
               {profile.available && (
                 <span className="mt-1 inline-flex items-center gap-2 text-sm text-ink-soft">
                   <span className="live-dot size-1.5 rounded-full bg-mint-ink" />
