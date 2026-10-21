@@ -137,13 +137,27 @@ body {
   animation: float-y 6s ease-in-out infinite;
 }
 
-/* Hero trace: each new log line slides up into the agent card */
-@keyframes log-in {
+/* Hero showcase: slow camera push on the architecture, story-style progress, caption swap */
+@keyframes kenburns {
+  from { transform: scale(1) translate(0, 0); }
+  to { transform: scale(1.22) translate(-4%, -2%); }
+}
+.kenburns {
+  animation: kenburns 6s ease-out forwards;
+}
+@keyframes reel-progress {
+  from { width: 0; }
+  to { width: 100%; }
+}
+.reel-progress {
+  animation: reel-progress linear forwards;
+}
+@keyframes slide-in {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.log-in {
-  animation: log-in 300ms ease-out;
+.slide-in {
+  animation: slide-in 400ms ease-out;
 }
 
 /* React Flow, themed through our tokens */
@@ -170,5 +184,5 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .live-dot, .flow-line, .float { animation: none; }
+  .live-dot, .flow-line, .float, .kenburns, .reel-progress, .slide-in { animation: none; }
 }

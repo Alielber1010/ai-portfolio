@@ -1,7 +1,8 @@
+import Image from "next/image";
 import { ArrowDown, Mail } from "lucide-react";
 import { GitHubIcon } from "@/components/GitHubIcon";
 import { TopBar } from "@/components/TopBar";
-import { HeroBoard } from "@/components/registry/HeroBoard";
+import { HeroShowcase } from "@/components/registry/HeroShowcase";
 import { HowIBuild } from "@/components/registry/HowIBuild";
 import { Registry } from "@/components/registry/Registry";
 import { KINDS } from "@/lib/kinds";
@@ -17,15 +18,29 @@ export default function Home() {
       <TopBar />
 
       {/* Hero */}
-      <section className="mx-auto grid max-w-7xl items-center gap-12 px-4 pb-16 pt-14 sm:px-6 lg:grid-cols-[1.1fr_1fr] lg:pt-24">
+      <section className="mx-auto grid max-w-7xl items-center gap-12 px-4 pb-16 pt-14 sm:px-6 lg:grid-cols-[1.1fr_1fr] lg:pt-24 [&>*]:min-w-0">
         <div>
-          {profile.available && (
-            <span className="inline-flex items-center gap-2 rounded-full border border-line bg-card px-3 py-1 text-xs text-ink-soft shadow-[var(--shadow-soft)]">
-              <span className="live-dot size-1.5 rounded-full bg-mint-ink" />
-              Open to AI Engineering roles
-            </span>
-          )}
-          <h1 className="mt-6 font-display text-[2.9rem] leading-[0.95] sm:text-7xl xl:text-8xl">
+          <div className="flex items-center gap-4">
+            <Image
+              src="/me.jpg"
+              alt={`Portrait of ${profile.name}`}
+              width={72}
+              height={72}
+              priority
+              unoptimized
+              className="size-16 shrink-0 rounded-full object-cover shadow-[var(--shadow-lift)] ring-4 ring-card sm:size-[72px]"
+            />
+            <div>
+              <div className="font-display text-xl sm:text-2xl">{profile.name}</div>
+              {profile.available && (
+                <span className="mt-1 inline-flex items-center gap-2 text-sm text-ink-soft">
+                  <span className="live-dot size-1.5 rounded-full bg-mint-ink" />
+                  Open to AI Engineering roles
+                </span>
+              )}
+            </div>
+          </div>
+          <h1 className="mt-8 font-display text-[2.9rem] leading-[0.95] sm:text-7xl lg:text-6xl xl:text-7xl">
             I build{" "}
             <span className="relative isolate text-lavender-ink sm:whitespace-nowrap">
               <span className="absolute inset-x-[-0.08em] bottom-[0.08em] -z-10 h-[0.32em] rounded-sm bg-lavender" />
@@ -35,7 +50,7 @@ export default function Home() {
             that ship.
           </h1>
           <p className="mt-6 text-lg text-ink-soft sm:text-xl">
-            <span className="font-semibold text-ink">{profile.name}</span> · {profile.headline}
+            {profile.headline}
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <a href="#registry" className="flex items-center gap-2 rounded-full bg-ink px-6 py-3 text-sm font-semibold text-paper transition hover:opacity-85">
@@ -61,9 +76,7 @@ export default function Home() {
             ))}
           </dl>
         </div>
-        <div className="hidden sm:block">
-          <HeroBoard />
-        </div>
+        <HeroShowcase projects={projects} />
       </section>
 
       {/* Registry */}
