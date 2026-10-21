@@ -1,38 +1,31 @@
-import { notFound } from 'next/navigation';
-import ProjectDetails from './_components/ProjectDetails';
-import { PROJECTS } from '@/lib/data';
-import { Metadata } from 'next';
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { TopBar } from "@/components/TopBar";
+import { Explorer } from "@/components/explorer/Explorer";
+import { getProject, projects } from "@/lib/projects";
+import { profile } from "@/lib/profile";
+import { workflow } from "@/lib/workflow";
 
-export const generateStaticParams = async () => {
-    return PROJECTS.map((project) => ({ slug: project.slug }));
-};
+// Every slug is prerendered below, so waiting on `params` costs nothing.
+export const instant = false;
 
-export const generateMetadata = async ({
-    params,
-}: {
-    params: Promise<{ slug: string }>;
-}) => {
-    const { slug } = await params;
-    const project = PROJECTS.find((project) => project.slug === slug);
+export function generateStaticParams() {
+  return [...projects, workflow].map((p) => ({ slug: p.slug }));
+}
 
-    return {
-        title: `${project?.title} - ${project?.techStack
-            .slice(0, 3)
-            .join(', ')}`,
-        description: project?.description,
-    } as Metadata;
-};
+export async function generateMetadata({ params }: PageProps<"/projects/[slug]">): Promise<Metadata> {
+  const project = getProject((await params).slug);
+  return project ? { title: `${project.name} — ${profile.name}`, description: project.tagline } : {};
+}
 
-const Page = async ({ params }: { params: Promise<{ slug: string }> }) => {
-    const { slug } = await params;
+export default async function ProjectPage({ params }: PageProps<"/projects/[slug]">) {
+  const project = getProject((await params).slug);
+  if (!project) notFound();
 
-    const project = PROJECTS.find((project) => project.slug === slug);
-
-    if (!project) {
-        return notFound();
-    }
-
-    return <ProjectDetails project={project} />;
-};
-
-export default Page;
+  return (
+    <div className="flex min-h-dvh flex-col lg:h-dvh lg:overflow-hidden">
+      <TopBar trail={project.name.toLowerCase()} />
+      <Explorer project={project} />
+    </div>
+  );
+}

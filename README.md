@@ -1,39 +1,30 @@
-# 🚀 My Portfolio Website
+# AI Portfolio — Ali Elbermawy
 
-![image](https://github.com/user-attachments/assets/ade45c4b-b2cb-46cb-b8a6-31cad3bd0c5a)
+My portfolio as an AI engineer, built like the systems it shows.
 
-[Checkout the initial design here](https://www.figma.com/design/56hODoGFDzZfZduBPfQeBg/New-Portfolio?node-id=18-1550&t=73vRMGTW0gspTSND-1)
+**Live:** https://portfolio.ali-elber.space
 
-## 🚨 Forking this repo (please read!)
+- **Registry** — every system I've built, one row each: what it does, the result, the stack.
+- **Architecture explorer** — open a system to see its agents, tools and memory as a live graph, with a step-by-step trace of a real request.
+- **How I build** — my Claude Code workflow, drawn as a system too.
 
-Many people have contacted me asking me if they can use this code for their own website, and the answer to that question is usually **yes, with attribution**.
+## Stack
 
-I value keeping my site open source, but as you all know, _**plagiarism is bad**_. It's always disheartening whenever I find that someone has copied my site without giving me credit. I spent a non-trivial amount of effort building and designing this iteration of my website, and I am proud of it! All I ask of you all is to not claim this effort as your own.
+Next.js 16 (App Router, Cache Components), React 19, Tailwind CSS 4, React Flow, TypeScript.
 
-Please also note that I did not build this site with the intention of it being a starter theme, so if you have questions about implementation, please refer to the [Next.js docs](https://nextjs.org/docs).
-
-If you like my work, give it a star⭐.
-
-### TL;DR
-
-Yes, you can fork this repo. Please give me proper credit by linking back to [tajmirul.site](https://tajmirul.site/). Thanks!
-
-## 🛠 Installation & Set Up
-
-First, run the development server:
+## Run it
 
 ```bash
 pnpm install
-pnpm dev
+pnpm dev        # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Content lives in `lib/`: `profile.ts` (about me), `projects.ts` (systems, nodes, edges, traces), `workflow.ts` (how I build).
 
-## 🤝 Contributing
-If you'd like to contribute or suggest improvements, feel free to open an issue or submit a pull request. All contributions are welcome!
+## Deploy
 
-## Credit
-_This readme is inspired from [Brittany Chiang's github](https://github.com/bchiang7/v4)_
+Runs as a standalone Next.js server in Docker:
 
-## 📄 License
-This project is open source and available under the [MIT License](https://github.com/Tajmirul/portfolio-2.0/blob/main/LICENSE).
+```bash
+docker compose up -d --build   # serves on 127.0.0.1:8091
+```

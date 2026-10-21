@@ -1,0 +1,13 @@
+services:
+  app:
+    build: .
+    image: portfolio
+    ports:
+      - "127.0.0.1:8091:3000"   # reached only through the Cloudflare Tunnel
+    restart: unless-stopped
+    mem_limit: 256m
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/ >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

@@ -1,57 +1,174 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-@layer base {
-    :root {
-        --background: 0 0% 13%;
-        --background-light: 0 0% 19%;
-        --foreground: 0 0% 87%;
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
-        --card: 0 0% 3.9%;
-        --card-foreground: 0 0% 98%;
-        --popover: 0 0% 3.9%;
-        --popover-foreground: 0 0% 98%;
+:root {
+  --paper: #fafaf7;
+  --card: #ffffff;
+  --ink: #1d1e29;
+  --ink-soft: #4f5163;
+  --ink-faint: #8d8fa0;
+  --line: #e7e6df;
+  --dot: #d6d5cb;
+  --edge: #c4c3b9;
+  --edge-done: #7fc4a3;
+  --code-bg: #1d1e29;
+  --code-ink: #e9e8f5;
 
-        --primary: 140 100% 47%;
-        --primary-foreground: 0 0% 13%;
-        --secondary: 193 100% 47%;
-        --secondary-foreground: 0 0% 13%;
-        --muted: 0 0% 14.9%;
-        --muted-foreground: 0 0% 71%;
-        --accent: 0 0% 14.9%;
-        --accent-foreground: 0 0% 98%;
-        --destructive: 0 62.8% 30.6%;
-        --destructive-foreground: 0 0% 98%;
-        --border: 0 0% 24%;
-        --input: 0 0% 14.9%;
-        --ring: 0 0% 83.1%;
-        --chart-1: 220 70% 50%;
-        --chart-2: 160 60% 45%;
-        --chart-3: 30 80% 55%;
-        --chart-4: 280 65% 60%;
-        --chart-5: 340 75% 55%;
-    }
+  --lavender: #ebe6ff;
+  --lavender-ink: #6247e0;
+  --mint: #dcf5e9;
+  --mint-ink: #19845a;
+  --sky: #ddeefc;
+  --sky-ink: #2470bd;
+  --peach: #fde6d8;
+  --peach-ink: #c25b1f;
+  --butter: #fbf1c9;
+  --butter-ink: #8c6e00;
+  --rose: #fbe1e8;
+  --rose-ink: #c03d68;
+
+  --shadow-soft-v: 0 1px 2px rgb(29 30 41 / 0.04), 0 8px 24px -12px rgb(29 30 41 / 0.12);
+  --shadow-lift-v: 0 2px 4px rgb(29 30 41 / 0.05), 0 18px 40px -16px rgb(29 30 41 / 0.22);
+  color-scheme: light;
 }
 
-@layer base {
-    ::-webkit-scrollbar {
-        display: none;
-    }
-    * {
-        @apply border-border !cursor-none;
-    }
-    body {
-        @apply bg-background text-foreground font-roboto-flex;
-    }
+[data-theme="dark"] {
+  --paper: #0e0f13;
+  --card: #17181e;
+  --ink: #f1f0f7;
+  --ink-soft: #b0b2c2;
+  --ink-faint: #74768a;
+  --line: #2a2b34;
+  --dot: #2b2c36;
+  --edge: #3e3f4b;
+  --edge-done: #3f9d73;
+  --code-bg: #0a0b0e;
+  --code-ink: #e9e8f5;
+
+  --lavender: #251f42;
+  --lavender-ink: #b4a6ff;
+  --mint: #12302a;
+  --mint-ink: #6cdba8;
+  --sky: #12283c;
+  --sky-ink: #80bff7;
+  --peach: #3a2317;
+  --peach-ink: #f6a878;
+  --butter: #312a10;
+  --butter-ink: #ebd26c;
+  --rose: #381927;
+  --rose-ink: #f394b4;
+
+  --shadow-soft-v: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -12px rgb(0 0 0 / 0.6);
+  --shadow-lift-v: 0 2px 4px rgb(0 0 0 / 0.4), 0 18px 40px -16px rgb(0 0 0 / 0.8);
+  color-scheme: dark;
 }
 
-@layer components {
-    .grid {
-        @apply gap-[25px];
-    }
+@theme inline {
+  --color-paper: var(--paper);
+  --color-card: var(--card);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
+  --color-line: var(--line);
+  --color-lavender: var(--lavender);
+  --color-lavender-ink: var(--lavender-ink);
+  --color-mint: var(--mint);
+  --color-mint-ink: var(--mint-ink);
+  --color-sky: var(--sky);
+  --color-sky-ink: var(--sky-ink);
+  --color-peach: var(--peach);
+  --color-peach-ink: var(--peach-ink);
+  --color-butter: var(--butter);
+  --color-butter-ink: var(--butter-ink);
+  --color-rose: var(--rose);
+  --color-rose-ink: var(--rose-ink);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
 
-    .markdown-text ul {
-        @apply pl-5 mt-2 list-disc;
-    }
+:root {
+  --shadow-soft: var(--shadow-soft-v);
+  --shadow-lift: var(--shadow-lift-v);
+}
+
+/* Headings: one clean, heavy sans instead of a decorative serif */
+@utility font-display {
+  font-family: var(--font-geist-sans);
+  font-weight: 650;
+  letter-spacing: -0.035em;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  transition: background-color 250ms, color 250ms;
+}
+
+/* The infinite-board dot grid */
+.dot-grid {
+  background-color: var(--paper);
+  background-image: radial-gradient(var(--dot) 1.2px, transparent 1.2px);
+  background-size: 22px 22px;
+}
+
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--mint-ink) 50%, transparent); }
+  70% { box-shadow: 0 0 0 7px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+.live-dot {
+  animation: pulse-ring 2s infinite;
+}
+
+@keyframes dash-flow {
+  to { stroke-dashoffset: -24; }
+}
+.flow-line {
+  stroke-dasharray: 4 8;
+  animation: dash-flow 1.2s linear infinite;
+}
+
+@keyframes float-y {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.float {
+  animation: float-y 6s ease-in-out infinite;
+}
+
+/* Hero trace: each new log line slides up into the agent card */
+@keyframes log-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.log-in {
+  animation: log-in 300ms ease-out;
+}
+
+/* React Flow, themed through our tokens */
+.react-flow {
+  --xy-controls-button-background-color: var(--card);
+  --xy-controls-button-background-color-hover: var(--paper);
+  --xy-controls-button-color: var(--ink-soft);
+  --xy-controls-button-color-hover: var(--ink);
+  --xy-controls-button-border-color: var(--line);
+}
+.react-flow__handle {
+  opacity: 0;
+  pointer-events: none;
+}
+.react-flow__controls {
+  box-shadow: var(--shadow-soft) !important;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+}
+.react-flow__controls-button {
+  width: 30px !important;
+  height: 30px !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-dot, .flow-line, .float { animation: none; }
 }
