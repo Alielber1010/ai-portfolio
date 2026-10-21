@@ -67,15 +67,11 @@ export default function Home() {
       </section>
 
       {/* Registry */}
-      <section id="registry" className="mx-auto max-w-7xl scroll-mt-20 px-4 py-16 sm:px-6">
-        <div className="mb-8 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="font-mono text-xs uppercase tracking-widest text-ink-faint">01 — Registry</p>
-            <h2 className="mt-2 font-display text-4xl sm:text-5xl">Systems I’ve built</h2>
-          </div>
-          <p className="max-w-sm text-sm text-ink-soft">
-            Open any system to explore its live architecture.
-          </p>
+      <section id="registry" className="mx-auto max-w-3xl scroll-mt-20 px-4 py-16 sm:px-6">
+        <div className="mb-8 text-center">
+          <p className="font-mono text-xs uppercase tracking-widest text-ink-faint">01 — Registry</p>
+          <h2 className="mt-2 font-display text-4xl sm:text-5xl">Systems I’ve built</h2>
+          <p className="mt-3 text-sm text-ink-soft">Open any system to explore its live architecture.</p>
         </div>
         <Registry projects={projects} />
       </section>
