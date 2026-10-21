@@ -67,7 +67,7 @@ export default function Home() {
       </section>
 
       {/* Registry */}
-      <section id="registry" className="mx-auto max-w-3xl scroll-mt-20 px-4 py-16 sm:px-6">
+      <section id="registry" className="mx-auto max-w-4xl scroll-mt-20 px-4 py-16 sm:px-6">
         <div className="mb-8 text-center">
           <p className="font-mono text-xs uppercase tracking-widest text-ink-faint">01 — Registry</p>
           <h2 className="mt-2 font-display text-4xl sm:text-5xl">Systems I’ve built</h2>
