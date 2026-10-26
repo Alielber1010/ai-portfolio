@@ -779,6 +779,134 @@ export const projects: Project[] = [
   },
 
   {
+    slug: "gameon",
+    builtBy: "Solo: product, design, full-stack code and deployment",
+    brand: {
+      logo: "/projects/gameon/logo.svg",
+      colors: [{ name: "GameOn Green", hex: "#16A34A" }, { name: "Mint", hex: "#E8FBEF" }, { name: "Ink", hex: "#1F2937" }, { name: "Team Red", hex: "#DC2626" }],
+      typeface: "Inter",
+      tone: "“Building sports communities, one match at a time.” Bright, friendly and sporty.",
+      screenshots: [
+        { src: "/projects/gameon/login.png", caption: "Sign in with Google or email. The live player count shows on the login page" },
+      ],
+    },
+    name: "GameOn",
+    tagline: "Find a pickup game near you, join it, chat with the players, and get tips from an AI coach.",
+    category: "Full-Stack Web App",
+    accent: "mint",
+    status: "production",
+    year: "2026",
+    github: "https://github.com/Alielber1010/gameon-v1",
+    demo: "https://gameon-v1-gilt.vercel.app/dashboard",
+    summary:
+      "GameOn is a web app for pickup sports. A host posts a game (sport, place on the map, date, time, skill level and number of seats), and players nearby find it, ask to join and chat with the group in real time. The host approves join requests, splits players into Team Blue and Team Red, marks attendance, and can hand the game to another host. After the game, players rate each other, so reliable players build a reputation. An AI coach with three characters (coach, nutritionist and first aid) answers training questions, and an events page pulls live sports news and fixtures. Admins see analytics, review reports with photos, and can ban users.",
+    outcomes: [
+      "Live on Vercel with real players, Google sign-in and a separate real-time chat server",
+      "Full game lifecycle: host, request, approve, team split, chat, attendance, rating",
+      "About 50 API routes on one MongoDB data model, with an admin console for reports and bans",
+      "Three AI characters, each keeping one ongoing conversation per user",
+    ],
+    stack: ["Next.js", "TypeScript", "MongoDB · Mongoose", "NextAuth (Google + email)", "Socket.io", "Dify", "Vercel Blob", "Leaflet · Google Maps", "Tailwind · shadcn/ui"],
+    nodes: [
+      {
+        id: "player", label: "Player", kind: "input", x: 0, y: 180, tech: "Web, mobile-first",
+        summary: "Browses games by sport, city and skill level, or hosts their own.",
+        io: { in: "Search, filters, map", out: "Join request / new game" },
+      },
+      {
+        id: "app", label: "Next.js App", kind: "service", x: 300, y: 180, tech: "Vercel · API routes",
+        summary: "The dashboard and about 50 API routes: games, join requests, attendance, ratings, reports, notifications.",
+        responsibilities: [
+          "NextAuth sessions with Google or email and password (bcrypt)",
+          "Middleware protects the dashboard and the admin area",
+          "Hosts approve or reject requests, remove players, transfer the game",
+        ],
+        io: { in: "HTTP from the dashboard", out: "JSON + notifications" },
+      },
+      {
+        id: "db", label: "MongoDB", kind: "data", x: 620, y: 180, tech: "Atlas · Mongoose",
+        summary: "Users, games, join requests, teams, attendance, ratings, messages, reports and notifications.",
+        responsibilities: [
+          "One game document holds players, Team Blue / Red, requests and attendance",
+          "Indexed by sport, date and status for the browse page",
+        ],
+      },
+      {
+        id: "socket", label: "Chat Server", kind: "service", x: 620, y: -40, tech: "Socket.io · Render",
+        summary: "A separate server for live game chat, because serverless functions can't hold a WebSocket open.",
+        io: { in: "join-game, send-message", out: "Messages to everyone in the game room" },
+      },
+      {
+        id: "maps", label: "Maps & Geocoding", kind: "tool", x: 300, y: -40, tech: "Leaflet · Google Maps links",
+        summary: "Turns a pasted Google Maps link into coordinates, city and country, and shows the game on a map.",
+      },
+      {
+        id: "coach", label: "AI Coach", kind: "agent", x: 940, y: 60, tech: "Dify chat apps",
+        summary: "Three characters, coach, nutritionist and first aid, each with its own assistant.",
+        responsibilities: [
+          "One ongoing conversation per user per character, history saved in MongoDB",
+          "Each character has its own Dify app and API key",
+        ],
+        io: { in: "Question + character", out: "Answer (markdown)" },
+      },
+      {
+        id: "events", label: "Sports Events", kind: "tool", x: 940, y: 300, tech: "ESPN public API",
+        summary: "Live news and fixtures, half Malaysian football and half international, refreshed on request.",
+      },
+      {
+        id: "blob", label: "Image Storage", kind: "tool", x: 300, y: 400, tech: "Vercel Blob",
+        summary: "Profile pictures, game covers and report photos.",
+      },
+      {
+        id: "admin", label: "Admin Console", kind: "output", x: 620, y: 400, tech: "Role-based",
+        summary: "Analytics, every game and user, reports with photos, bans, role changes and broadcast notifications.",
+      },
+    ],
+    edges: [
+      { id: "g1", from: "player", to: "app" },
+      { id: "g2", from: "app", to: "db", kind: "data" },
+      { id: "g3", from: "player", to: "socket", fromSide: "top", toSide: "left", label: "live chat" },
+      { id: "g4", from: "socket", to: "db", fromSide: "bottom", toSide: "top", kind: "data", label: "save message" },
+      { id: "g5", from: "app", to: "maps", fromSide: "top", toSide: "bottom", label: "geocode" },
+      { id: "g6", from: "app", to: "coach", label: "ask" },
+      { id: "g7", from: "app", to: "events", label: "sync" },
+      { id: "g8", from: "app", to: "blob", fromSide: "bottom", toSide: "top", label: "upload" },
+      { id: "g9", from: "db", to: "admin", fromSide: "bottom", toSide: "top", kind: "data" },
+    ],
+    trace: {
+      prompt: "Host a 5-a-side football game in Skudai on Friday, 18:00 to 20:00, 10 players, intermediate.",
+      steps: [
+        { node: "player", title: "Game created", detail: "Host fills in the form and pastes a Google Maps link to the pitch.", ms: 30 },
+        { node: "maps", edges: ["g1", "g5"], title: "Place found", detail: "Link resolved to coordinates; city shown as Skudai.", ms: 600 },
+        { node: "blob", edges: ["g8"], title: "Cover uploaded", detail: "The game's cover photo is stored and linked.", ms: 900 },
+        { node: "db", edges: ["g2"], title: "Game listed", detail: "Shows up for players filtering by football near Johor Bahru.", ms: 60 },
+        { node: "app", title: "Join requests", detail: "Three players ask to join; the host accepts two and each gets a notification.", ms: 40 },
+        { node: "socket", edges: ["g3", "g4"], title: "Group chat", detail: "Players agree who brings the ball. Messages are saved to the game.", ms: 80 },
+        { node: "admin", edges: ["g9"], title: "After the game", detail: "Host marks attendance, players rate each other, a no-show gets reported and reviewed.", ms: 120 },
+      ],
+    },
+    decisions: [
+      {
+        title: "A separate chat server beside the serverless app",
+        why: "Vercel functions start and stop per request and can't keep a WebSocket open. Chat runs on a small Socket.io server on Render that shares the same MongoDB, and the rest stays serverless.",
+        tradeoff: "Two deployments and a CORS list to keep in step.",
+      },
+      {
+        title: "The host approves who joins",
+        why: "Pickup games fall apart when strangers fill the seats and don't show. Join requests, attendance and player ratings give hosts the control and the history to pick reliable players.",
+      },
+      {
+        title: "Paste a Google Maps link, not an address form",
+        why: "People already share pitches as Google Maps links on WhatsApp. The app resolves the link to coordinates and a city, so hosting a game takes seconds.",
+      },
+      {
+        title: "Free live data instead of an AI for events",
+        why: "Events first came from an AI workflow. ESPN's public feeds are free, need no key and are always current, so the AI is kept for the coach, where it adds real value.",
+      },
+    ],
+  },
+
+  {
     slug: "aegis",
     builtBy: "Solo: product, brand, architecture and code",
     // TODO: replace logo, palette and screenshots with the real product assets
