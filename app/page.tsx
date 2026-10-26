@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { ArrowDown, Mail } from "lucide-react";
 import { GitHubIcon } from "@/components/GitHubIcon";
+import { LinkedInIcon } from "@/components/LinkedInIcon";
 import { TopBar } from "@/components/TopBar";
 import { HeroShowcase } from "@/components/registry/HeroShowcase";
 import { HowIBuild } from "@/components/registry/HowIBuild";
@@ -58,6 +59,9 @@ export default function Home() {
             </a>
             <a href={profile.links.github} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-full border border-line bg-card px-6 py-3 text-sm font-semibold transition hover:border-ink">
               <GitHubIcon className="size-4" /> GitHub
+            </a>
+            <a href={profile.links.linkedin} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-full border border-line bg-card px-6 py-3 text-sm font-semibold transition hover:border-ink">
+              <LinkedInIcon className="size-4" /> LinkedIn
             </a>
             <a href={`mailto:${profile.email}`} aria-label="Email" className="grid size-[46px] place-items-center rounded-full border border-line bg-card transition hover:border-ink">
               <Mail className="size-4" />
@@ -137,7 +141,7 @@ export default function Home() {
         </div>
         <div className="flex gap-4 text-sm text-ink-soft">
           <a href={profile.links.github} className="hover:text-ink">GitHub</a>
-          <a href={profile.links.linkedin} className="hover:text-ink">LinkedIn</a>
+          <a href={profile.links.linkedin} target="_blank" rel="noreferrer" className="hover:text-ink">LinkedIn</a>
         </div>
       </footer>
     </div>

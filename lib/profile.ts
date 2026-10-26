@@ -10,7 +10,7 @@ export const profile = {
   email: "ali.melbermawy@gmail.com",
   links: {
     github: "https://github.com/Alielber1010",
-    linkedin: "https://www.linkedin.com/",
+    linkedin: "https://www.linkedin.com/in/ali-elbermawy-390b95267/",
   },
   stack: [
     "Python",
