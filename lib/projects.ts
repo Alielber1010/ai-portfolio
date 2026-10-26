@@ -148,7 +148,7 @@ export const projects: Project[] = [
         { node: "builder", edges: ["w6"], title: "Demo built", detail: "Menu and location page in the shop's own colours, 14 files.", ms: 95000 },
         { node: "hub", edges: ["w7"], title: "Deployed", detail: "Pushed to the hub and deployed to a Cloudflare account with room.", ms: 15000 },
         { node: "site", edges: ["w8"], title: "Demo live", detail: "Link ready to open on the owner's phone.", ms: 10 },
-        { node: "copywriter", edges: ["w9"], title: "Message written", detail: "Personal WhatsApp message with the demo link, EN + BM.", ms: 60000 },
+        { node: "copywriter", edges: ["w9"], title: "Message written", detail: "Personal WhatsApp message with the demo link, EN + BM.", ms: 20000 },
         { node: "wa", edges: ["w10"], title: "Ready to send", detail: "Shown in HQ as “Not sent yet” until someone taps send.", ms: 10 },
       ],
     },
