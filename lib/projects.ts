@@ -929,14 +929,21 @@ export const projects: Project[] = [
 
   {
     slug: "gameon",
-    builtBy: "Solo: product, design, full-stack code and deployment",
+    builtBy: "Solo, as my Final Year Project at Universiti Teknologi Malaysia (BSc Computer Science, Software Engineering): requirements, design documents, full-stack code, testing and deployment",
     brand: {
       logo: "/projects/gameon/logo.svg",
       colors: [{ name: "GameOn Green", hex: "#16A34A" }, { name: "Mint", hex: "#E8FBEF" }, { name: "Ink", hex: "#1F2937" }, { name: "Team Red", hex: "#DC2626" }],
       typeface: "Inter",
       tone: "“Building sports communities, one match at a time.” Bright, friendly and sporty.",
       screenshots: [
-        { src: "/projects/gameon/login.png", caption: "Sign in with Google or email. The live player count shows on the login page" },
+        { src: "/projects/gameon/browse.png", caption: "Find your game: nearby games by location, sport and skill level, with seats left and a Google Maps link" },
+        { src: "/projects/gameon/create-game.png", caption: "Hosting a game is one form: title, sport, skill level, description and a cover photo" },
+        { src: "/projects/gameon/requests.png", caption: "Upcoming games: hosted, joined, and join requests waiting for the host to approve" },
+        { src: "/projects/gameon/rate-players.png", caption: "After the game: the host has marked who attended, and players rate or report each other" },
+        { src: "/projects/gameon/report.png", caption: "Reporting a player, with a reason and up to 3 screenshots as proof" },
+        { src: "/projects/gameon/ai-coach.png", caption: "AI Coach, first-aid character: safety tips and red flags for a pickup game" },
+        { src: "/projects/gameon/admin.png", caption: "Admin dashboard: users, online now, games, pending reports, messages, growth and games by sport" },
+        { src: "/projects/gameon/login.png", caption: "Sign in with Google or email" },
       ],
     },
     name: "GameOn",
@@ -948,9 +955,10 @@ export const projects: Project[] = [
     github: "https://github.com/Alielber1010/gameon-v1",
     demo: "https://gameon-v1-gilt.vercel.app/dashboard",
     summary:
-      "GameOn is a web app for pickup sports. A host posts a game (sport, place on the map, date, time, skill level and number of seats), and players nearby find it, ask to join and chat with the group in real time. The host approves join requests, splits players into Team Blue and Team Red, marks attendance, and can hand the game to another host. After the game, players rate each other, so reliable players build a reputation. An AI coach with three characters (coach, nutritionist and first aid) answers training questions, and an events page pulls live sports news and fixtures. Admins see analytics, review reports with photos, and can ban users.",
+      "GameOn is a web app for pickup sports. A host posts a game (sport, place on the map, date, time, skill level and number of seats), and players nearby find it, ask to join and chat with the group in real time. The host approves join requests, splits players into Team Blue and Team Red, marks attendance, and can hand the game to another host. After the game, players rate each other, so reliable players build a reputation. An AI coach with three characters (coach, nutritionist and first aid) answers training questions, and an events page pulls live sports news and fixtures. Admins see analytics, review reports with photos, and can ban users. It was my Final Year Project at UTM, built the way a real software team would: I wrote a full Software Requirements Specification (SRS), Software Design Document (SDD) and Software Test Document (STD) before and alongside the code, then ran user acceptance tests on the finished system.",
     outcomes: [
       "Live on Vercel with real players, Google sign-in and a separate real-time chat server",
+      "Fully documented: SRS, SDD and STD, plus user acceptance testing and the final report for UTM",
       "Full game lifecycle: host, request, approve, team split, chat, attendance, rating",
       "About 50 API routes on one MongoDB data model, with an admin console for reports and bans",
       "Three AI characters, each keeping one ongoing conversation per user",
@@ -1035,6 +1043,11 @@ export const projects: Project[] = [
       ],
     },
     decisions: [
+      {
+        title: "Specify and design first, then build",
+        why: "The requirements were gathered from the end users and the owner and written up as an SRS. The data model, modules and screens were designed in an SDD, and every module had test cases in an STD before release. That made scope changes visible and gave each feature a test to pass.",
+        tradeoff: "Slower start than coding straight away, but far fewer surprises in testing.",
+      },
       {
         title: "A separate chat server beside the serverless app",
         why: "Vercel functions start and stop per request and can't keep a WebSocket open. Chat runs on a small Socket.io server on Render that shares the same MongoDB, and the rest stays serverless.",
