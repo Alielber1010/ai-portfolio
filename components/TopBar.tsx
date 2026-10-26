@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { profile } from "@/lib/profile";
 import { projects } from "@/lib/projects";
@@ -10,7 +11,7 @@ export function TopBar({ trail }: { trail?: string }) {
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
         <div className="flex min-w-0 items-center gap-2 text-sm">
           <Link href="/" className="flex items-center gap-2 font-medium">
-            <span className="grid size-7 place-items-center rounded-lg bg-ink font-display text-base text-paper">a</span>
+            <Image src="/icon.svg" alt="" width={28} height={28} unoptimized className="size-7" />
             <span className="hidden sm:inline">{profile.handle}</span>
           </Link>
           <span className="text-ink-faint">/</span>
