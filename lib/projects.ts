@@ -779,6 +779,155 @@ export const projects: Project[] = [
   },
 
   {
+    slug: "cafe-radio",
+    builtBy: "Solo: product, brand, architecture and code, built with Claude Code skills and agents behind a push-to-deploy pipeline",
+    brand: {
+      logo: "/projects/cafe-radio/logo.svg",
+      colors: [{ name: "Roast", hex: "#2A1E17" }, { name: "Signal Orange", hex: "#E8572A" }, { name: "Hot Signal", hex: "#FF6B3D" }, { name: "Foam", hex: "#F5EFE6" }],
+      tone: "“Your café. Your music.” Warm, lower-case and cozy. Two colourways, Latte for mornings and Espresso for evenings, on Liquid Glass controls.",
+      screenshots: [
+        { src: "/projects/cafe-radio/home.png", caption: "The public site: guests scan a card, pick a nickname and help choose what plays next" },
+        { src: "/projects/cafe-radio/features.png", caption: "How it works and what cafés get: a fair queue, full control, music through their own Spotify or YouTube" },
+        { src: "/projects/cafe-radio/mobile.png", caption: "Built for phones: joining takes a few seconds, one-handed, with live updates" },
+      ],
+    },
+    name: "Café Radio",
+    tagline: "Café guests scan a QR code, request songs and vote, and a fair queue decides what plays next.",
+    category: "SaaS Product",
+    accent: "peach",
+    status: "pilot",
+    year: "2026",
+    github: undefined, // private repo
+    demo: "https://radio.ali-elber.space",
+    summary:
+      "Café Radio lets a café's customers choose the music. They scan a card on the table, join with just a nickname (no app, no account) and add up to five songs and vote on what plays next. They can also nudge the vibe and the volume. The café keeps control: it picks how songs get approved, sets music rules (no explicit tracks, length limits, genres, cooldowns) and can remove a guest. A fair queue engine slips the most wanted, fairest request in between the café's own playlist, which plays through the café's own Spotify or YouTube. It also covers staff roles, branded print-ready QR cards, billing and a loyalty stamp card.",
+    outcomes: [
+      "Live, and every push to main deploys itself, with a health check and automatic rollback",
+      "Votes can't drown anyone out: a request that has waited 30 minutes at least ties the most-voted new one",
+      "About 485 automated tests: unit, integration against a real Postgres, and 11 Playwright end-to-end suites",
+      "Guests need no app and no login; music plays through the café's own Spotify or YouTube",
+    ],
+    stack: ["Next.js", "TypeScript", "PostgreSQL", "Drizzle", "Better Auth", "SSE", "Spotify · YouTube APIs", "Playwright", "Docker"],
+    nodes: [
+      {
+        id: "guest", label: "Guest Phone", kind: "input", x: 0, y: 60, tech: "QR → room link",
+        summary: "A customer scans the table card, picks a nickname and is in. They search, add songs and vote.",
+        io: { in: "QR scan", out: "Song requests + votes" },
+      },
+      {
+        id: "owner", label: "Café Dashboard", kind: "input", x: 0, y: 340, tech: "Owner · manager · staff",
+        summary: "Where the café runs the room: approvals, music rules, guests, staff, cards, billing and loyalty.",
+        responsibilities: [
+          "Three approval modes, from approve-everything to let-it-run",
+          "Block explicit songs, cap length, set genres and cooldowns",
+        ],
+        io: { in: "Staff actions", out: "Rules + decisions" },
+      },
+      {
+        id: "app", label: "Next.js App", kind: "service", x: 300, y: 200, tech: "App Router · Better Auth",
+        summary: "One app for guests, staff and owners. The server decides queue order, votes and permissions; the phone never does.",
+        responsibilities: [
+          "Two fully separate sign-in systems: staff and owners, and customers",
+          "Guests get a hashed-token session, no account needed",
+          "Every owner route checks the user's role for that café",
+        ],
+        io: { in: "Requests from phones and dashboards", out: "Validated changes" },
+      },
+      {
+        id: "rules", label: "Admission Rules", kind: "tool", x: 600, y: 40, tech: "Rule engine",
+        summary: "Checks each requested song against the café's rules: allow, reject or send to staff for review.",
+        responsibilities: [
+          "Explicit flag, maximum length, allowed or blocked genres, duplicates",
+          "Missing data is never treated as safe; the café picks the policy",
+        ],
+        io: { in: "Requested track", out: "allow | reject | review" },
+      },
+      {
+        id: "db", label: "PostgreSQL", kind: "data", x: 600, y: 360, tech: "Postgres 16 · Drizzle",
+        summary: "The single source of truth: rooms, requests, votes, play history and settings.",
+        responsibilities: ["Versioned migrations run on start under a lock", "LISTEN/NOTIFY tells the app when something changed"],
+      },
+      {
+        id: "queue", label: "Queue Engine", kind: "service", x: 900, y: 200, tech: "Pure TypeScript core",
+        summary: "Every 5 seconds per room: after every 2 songs from the café's playlist, it picks the fairest guest request to play next.",
+        responsibilities: [
+          "Hard filters first: approved, not expired, not on cooldown, guest not blocked",
+          "No back-to-back turns for the same guest while others wait",
+          "Ties are broken by rule, never at random, and every decision is stored with its score",
+        ],
+        io: { in: "Eligible requests", out: "Next track" },
+        code: {
+          lang: "ts",
+          snippet: `priority = w.votes    * sqrt(votes) / sqrt(maxVotes)
+         + w.wait     * min(1, waited / waitCap)
+         + w.fairness * (0.7 / (1 + recentPlays)
+                       + 0.3 * min(1, sinceLastPlay / (2 * waitCap)))
+// defaults: votes 2, wait 3, fairness 5 · waitCap 30 min`,
+        },
+      },
+      {
+        id: "provider", label: "Spotify / YouTube", kind: "tool", x: 1200, y: 200, tech: "Web API · IFrame Player",
+        summary: "Plays the music in the café's own account. Spotify gets a queue add; YouTube gets a command in the café's player tab.",
+        io: { in: "Play next", out: "Now playing" },
+      },
+      {
+        id: "speakers", label: "Café Speakers", kind: "output", x: 1500, y: 200,
+        summary: "The room hears the café's playlist with guest picks slipped in between.",
+      },
+      {
+        id: "live", label: "Live Updates", kind: "service", x: 300, y: 480, tech: "SSE",
+        summary: "Phones and dashboards update the moment something changes, with no refresh.",
+        io: { in: "Change notices from Postgres", out: "Server-sent events" },
+      },
+    ],
+    edges: [
+      { id: "c1", from: "guest", to: "app", label: "songs + votes" },
+      { id: "c2", from: "owner", to: "app", label: "rules" },
+      { id: "c3", from: "app", to: "rules", label: "check" },
+      { id: "c4", from: "app", to: "db", kind: "data", label: "write" },
+      { id: "c5", from: "rules", to: "queue", kind: "data", label: "eligible" },
+      { id: "c6", from: "db", to: "queue", kind: "data", label: "votes + history" },
+      { id: "c7", from: "queue", to: "provider", kind: "control", label: "play next" },
+      { id: "c8", from: "provider", to: "speakers", label: "audio" },
+      { id: "c9", from: "db", to: "live", fromSide: "left", toSide: "right", kind: "data", label: "NOTIFY" },
+      { id: "c10", from: "live", to: "owner", fromSide: "left", toSide: "bottom", label: "live" },
+    ],
+    trace: {
+      prompt: "Friday evening: a guest scans the table card and asks for a song.",
+      steps: [
+        { node: "guest", title: "Joined", detail: "Card scanned, nickname picked. No app, no account.", ms: 4000 },
+        { node: "app", edges: ["c1"], title: "Request received", detail: "Session checked; the guest has 3 of 5 song slots left.", ms: 40 },
+        { node: "rules", edges: ["c3"], title: "Rules checked", detail: "Not explicit, under the length limit, not a duplicate, so it is eligible straight away in auto-accept mode.", ms: 20 },
+        { node: "db", edges: ["c4"], title: "Saved", detail: "Request stored; other guests vote on it from their phones.", ms: 15 },
+        { node: "live", edges: ["c9"], title: "Everyone sees it", detail: "Every phone in the room shows the new request and its votes, live.", ms: 200 },
+        { node: "queue", edges: ["c5", "c6"], title: "Picked", detail: "Two playlist songs have played. This request has the best mix of votes, waiting time and fairness.", ms: 5000 },
+        { node: "provider", edges: ["c7"], title: "Queued", detail: "Sent to the café's Spotify as the next track.", ms: 300 },
+        { node: "speakers", edges: ["c8"], title: "Playing", detail: "The guest's song plays, then the café's playlist carries on.", ms: 10 },
+      ],
+    },
+    decisions: [
+      {
+        title: "Fairness beats popularity",
+        why: "If votes alone decided, the loudest table would own the room. Fairness has the biggest weight and waiting time outweighs votes, so someone who hasn't had a turn goes ahead of a prolific requester.",
+        tradeoff: "The most-voted song doesn't always play first. The guest app shows the likely play order so this feels fair, not random.",
+      },
+      {
+        title: "Just Next.js and Postgres",
+        why: "No Redis, no workers, no microservices. Postgres LISTEN/NOTIFY drives live updates over SSE, and the scheduler runs in the app under database locks. One container, which fits a small server.",
+        tradeoff: "One app container only. That is why in-process caches are safe, but scaling out would need a rethink.",
+      },
+      {
+        title: "Never fake anything",
+        why: "No pretend playback, provider connection, payment or print order. If something isn't available, the screen says so and why. Soundtrack Your Brand rooms are staff-only because its terms forbid guest-controlled playback, and the server refuses guest requests for them.",
+      },
+      {
+        title: "Push to main means production",
+        why: "A timer on the server pulls main every 3 minutes, builds, health-checks and rolls back on failure. I build with Claude Code using project skills (backend, frontend, queue engine) and a copywriter agent, and push only when typecheck, lint, tests and the Docker build pass.",
+      },
+    ],
+  },
+
+  {
     slug: "gameon",
     builtBy: "Solo: product, design, full-stack code and deployment",
     brand: {
