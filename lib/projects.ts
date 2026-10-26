@@ -1069,6 +1069,158 @@ export const projects: Project[] = [
   },
 
   {
+    slug: "nani",
+    builtBy: "Solo: product, character and brand, Flutter app, Supabase backend, AI, payments and the admin",
+    brand: {
+      logo: "/projects/nani/logo.png",
+      colors: [{ name: "Apricot", hex: "#F4A96A" }, { name: "Warm Cream", hex: "#FFF8F0" }, { name: "Cocoa", hex: "#3D2B1F" }, { name: "Sage", hex: "#A8C5A0" }],
+      typeface: "Quicksand · Comfortaa · Just Another Hand",
+      tone: "“Come on, dear, just the sink, then you rest.” Warm, nostalgic and a little strict, like the grandma whose house was full of colour.",
+      screenshots: [
+        { src: "/projects/nani/inspection.jpg", caption: "Show me the room: snap a photo and Nani walks you through the mess one task at a time" },
+        { src: "/projects/nani/room.jpg", caption: "Pick a room in Nani's house, then scan your own" },
+        { src: "/projects/nani/home.jpg", caption: "One check-in a day keeps the streak; today's routine is on the home screen" },
+        { src: "/projects/nani/routine.jpg", caption: "Nani's routines and tricks, added in one tap" },
+        { src: "/projects/nani/shop.jpg", caption: "Clean rooms earn cookies to spend on things for Nani's shelf" },
+        { src: "/projects/nani/widgets.jpg", caption: "Home-screen widgets: today's list, the week and the streak" },
+        { src: "/projects/nani/themes.jpg", caption: "Theme picker, rendered from the real app screen" },
+      ],
+    },
+    name: "Nani",
+    tagline: "A grandma in your phone: take a photo of a messy room and Nani's AI walks you through cleaning it, one step at a time.",
+    category: "Mobile App · AI",
+    accent: "peach",
+    status: "production",
+    year: "2026",
+    github: undefined, // private repo
+    demo: "https://nani.homes", // TODO: switch to the Play Store link
+    summary:
+      "Nani is an Android app for people who find it hard to start cleaning. You take a photo of a room, and Nani, a warm and slightly strict grandma, looks at it and gives you 3 to 7 small tasks in her own voice, about what is actually in that photo. Finishing a check-in keeps your streak and earns cookies, which you spend on gifts for Nani's shelf. There are ready-made routines, reminders, home-screen widgets, themes and a Pro plan. It is built in Flutter on Supabase. The phone never holds the AI key and never decides anything that matters: every AI call, streak, cookie and purchase goes through a Supabase Edge Function that checks who the user is and applies the rules on the server.",
+    outcomes: [
+      "Live on Google Play, with Google and email sign-in and a Pro subscription",
+      "The AI endpoint only answers a signed-in user, and the Gemini key lives on the server",
+      "Cookies, streaks and Pro can't be faked from the app: the database is read-only to the phone",
+      "Screen layouts are data on the server, so an admin can move things without a new release",
+    ],
+    stack: ["Flutter · Dart", "Supabase (Auth, Postgres, RLS)", "Supabase Edge Functions (Deno)", "Gemini vision", "RevenueCat", "AdMob", "Android widgets"],
+    nodes: [
+      {
+        id: "app", label: "Flutter App", kind: "input", x: 0, y: 200, tech: "Android · Flutter",
+        summary: "Camera, rooms, routines, streaks, shop, widgets and reminders. It shows things; it does not decide them.",
+        responsibilities: [
+          "Resizes the photo (1024 px, quality 72) before it is sent",
+          "Sends the phone's local date so streaks follow the user's own day",
+          "Reads its own rows only; every write goes through an Edge Function",
+        ],
+        io: { in: "Photo + room", out: "Signed request with the user's token" },
+      },
+      {
+        id: "auth", label: "Supabase Auth", kind: "service", x: 300, y: 0, tech: "Google + email",
+        summary: "Signs the user in and gives the app a token that every function checks.",
+      },
+      {
+        id: "check", label: "check_room", kind: "service", x: 300, y: 200, tech: "Edge Function · Deno",
+        summary: "The protected AI endpoint: it checks the user's token, picks the room's guide and calls Gemini.",
+        responsibilities: [
+          "No valid token, no answer (401)",
+          "The room name is only a key into a fixed table, never pasted into the prompt",
+          "Logs every call: user, success, latency, model, tokens and image size",
+        ],
+        io: { in: "Token + image + room", out: "{ tasks: [...] }" },
+        code: {
+          lang: "ts",
+          snippet: `const { data } = await supabase.auth.getUser(token);
+if (!data?.user) return new Response("Invalid user", { status: 401 });
+
+// room is a KEY, not text: a modified client can send anything
+const room = ROOM_GUIDE[String(body.room).trim().toLowerCase()] ?? GENERIC;`,
+        },
+      },
+      {
+        id: "gemini", label: "Gemini Vision", kind: "model", x: 620, y: 60, tech: "Model set by a secret",
+        summary: "Looks at the photo and answers as Nani: 3 to 7 tasks, 10 words each, in JSON.",
+      },
+      {
+        id: "award", label: "award_action", kind: "service", x: 620, y: 260, tech: "Edge Function",
+        summary: "Gives the streak and cookies for a check-in, once per room per day, and checks Pro rooms.",
+        responsibilities: [
+          "Duplicate check on day + room, in the user's own calendar day",
+          "Free users can scan Bedroom and Desk; other rooms answer 403 unless Pro",
+        ],
+      },
+      {
+        id: "shopfn", label: "Shop & Streak Functions", kind: "service", x: 620, y: 440, tech: "buy_item · restore_streak · room_settings",
+        summary: "Buying gifts, bringing back a lost streak for 150 cookies, and changing the main room, each with its own rules.",
+      },
+      {
+        id: "db", label: "Postgres", kind: "data", x: 940, y: 260, tech: "RLS: read own rows",
+        summary: "Users, streaks, cookie balance, transactions, the gift catalogue and screen layouts.",
+        responsibilities: [
+          "Policies let a user read only their own rows, and write nothing",
+          "Money RPCs (add or spend cookies) are revoked from app users; only the server can call them",
+        ],
+      },
+      {
+        id: "rc", label: "RevenueCat Webhook", kind: "tool", x: 940, y: 40, tech: "Edge Function · shared secret",
+        summary: "The only thing that can set a user to Pro, and it downgrades them when a subscription ends.",
+      },
+      {
+        id: "admin", label: "Admin (nani.homes)", kind: "output", x: 940, y: 460, tech: "Web admin",
+        summary: "Gift catalogue and scene layouts; phones pick up changes on the next launch.",
+      },
+    ],
+    edges: [
+      { id: "n1", from: "app", to: "auth", fromSide: "top", toSide: "left", label: "sign in" },
+      { id: "n2", from: "app", to: "check", label: "photo + token" },
+      { id: "n3", from: "check", to: "gemini", label: "image + room guide" },
+      { id: "n4", from: "check", to: "award", fromSide: "bottom", toSide: "left", kind: "control", label: "tasks done" },
+      { id: "n5", from: "award", to: "db", kind: "data", label: "service role" },
+      { id: "n6", from: "app", to: "shopfn", fromSide: "bottom", toSide: "left", label: "buy / restore" },
+      { id: "n7", from: "shopfn", to: "db", kind: "data" },
+      { id: "n8", from: "rc", to: "db", fromSide: "bottom", toSide: "top", kind: "data", label: "plan_type" },
+      { id: "n9", from: "admin", to: "db", fromSide: "top", toSide: "bottom", kind: "data", label: "layouts, gifts" },
+    ],
+    trace: {
+      prompt: "A free user takes a photo of their messy bedroom at 07:00 in Kuala Lumpur.",
+      steps: [
+        { node: "app", title: "Photo taken", detail: "Resized on the phone and sent with the room “Bedroom” and the user's token.", ms: 400 },
+        { node: "check", edges: ["n2"], title: "User checked", detail: "Token verified with Supabase Auth; no token would mean a 401 and no AI call.", ms: 120 },
+        { node: "gemini", edges: ["n3"], title: "Nani looks", detail: "Bedroom guide: the bed, clothes on the floor, bedside surfaces. Five tasks come back.", ms: 2500 },
+        { node: "app", title: "Walked through it", detail: "“Oh sweetie, let's grab those loose papers on the bed first.” One task per screen, Done to move on.", ms: 300000 },
+        { node: "award", edges: ["n4"], title: "Check-in counted", detail: "Today in the user's own calendar, Bedroom; the first of the day, so the streak moves.", ms: 150 },
+        { node: "db", edges: ["n5"], title: "Saved by the server", detail: "Streak and cookies written with the service role; the app only reads them back.", ms: 40 },
+      ],
+    },
+    decisions: [
+      {
+        title: "The AI sits behind an Edge Function, never in the app",
+        why: "A key shipped in an app can be pulled out of it. The phone only ever sends its Supabase token; check_room verifies it, then calls Gemini with a key that lives in the server's secrets.",
+        tradeoff: "Every scan makes one extra hop. In return each call is tied to a user and logged.",
+      },
+      {
+        title: "Treat everything from the phone as untrusted",
+        why: "A modified app can send anything. The room name picks an entry from a fixed table instead of going into the prompt, the date must be a real date, and unknown rooms get a 400.",
+      },
+      {
+        title: "Read-only database, rules on the server",
+        why: "Postgres policies let the app read only its own rows and write nothing. Cookies, streaks and purchases change only inside Edge Functions. I also found and closed a hole where any signed-in user could have called the cookie functions for any account.",
+      },
+      {
+        title: "Only the payment provider can grant Pro",
+        why: "The RevenueCat webhook, checked with a shared secret, is the only writer of a user's plan. A user can't give themselves Pro, and someone who stops paying is actually downgraded.",
+      },
+      {
+        title: "Count the streak in the user's day, not the server's",
+        why: "The server runs on UTC. For a user in Malaysia, a 7 am check-in was still yesterday in UTC, so streaks reset for no reason. The phone now sends its local date and the server checks it.",
+      },
+      {
+        title: "The model name is a setting, not code",
+        why: "The first model was retired by Google without warning and the scans quietly returned nothing. The model is now a secret that can be changed in a minute, and Gemini's own errors are logged instead of hidden.",
+      },
+    ],
+  },
+
+  {
     slug: "aegis",
     builtBy: "Solo: product, brand, architecture and code",
     // TODO: replace logo, palette and screenshots with the real product assets
