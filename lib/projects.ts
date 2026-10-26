@@ -642,6 +642,143 @@ export const projects: Project[] = [
   },
 
   {
+    slug: "clipzo",
+    builtBy: "Solo: product, brand, engine, billing and hosting",
+    brand: {
+      logo: "/projects/clipzo/logo.png",
+      colors: [{ name: "Ink", hex: "#060A23" }, { name: "Violet", hex: "#8E3BF7" }, { name: "Indigo", hex: "#505AF2" }, { name: "Cyan", hex: "#3B82F6" }],
+      typeface: "System UI (no font download)",
+      tone: "Dark, fast and creator-native. One violet-to-blue sweep, used for the mark and the main button only.",
+      reel: {
+        src: "/projects/clipzo/reel.mp4",
+        poster: "/projects/clipzo/reel-poster.jpg",
+        caption: "A Heavy edit from a long podcast: face-tracked crop, word-by-word captions, B-roll cutaways and a title card",
+      },
+      screenshots: [
+        { src: "/projects/clipzo/create.png", caption: "Create: pick what you are making. Podcast to clips, voice to video, talking-head edit or captions" },
+        { src: "/projects/clipzo/project.png", caption: "A project: every reel with its headline, length and a score for hook, pacing, captions and length" },
+        { src: "/projects/clipzo/review.png", caption: "Review queue: approve or reject each reel from the keyboard before anything is posted" },
+      ],
+    },
+    name: "Clipzo",
+    tagline: "Drop in a long podcast, get edited vertical Reels back: cut, captioned, face-tracked and scored.",
+    category: "Agentic SaaS",
+    accent: "lavender",
+    status: "pilot",
+    year: "2026",
+    github: undefined, // private repo
+    demo: "https://clipzo.ali-elber.space",
+    summary:
+      "Clipzo is a SaaS for short-form video. Paste a podcast link or upload a recording and it returns finished 9:16 Reels and Shorts. It finds the moments worth posting, cuts out pauses, follows the speaker's face, and adds captions, B-roll, GIFs and beat-synced music. Every reel is scored for hook, pacing, captions and length. Nothing is posted until you approve it. Beyond podcast clips, it turns a voiceover into an edited explainer, tightens a take to camera, or burns captions onto a video you already have. It has Stripe plans, a review queue and Instagram and YouTube publishing, and it runs on my own server.",
+    outcomes: [
+      "A 1-hour podcast becomes 6 edited 30-second reels in about 70 minutes on a 2 vCPU server",
+      "The AI makes only 2 calls per batch, plus 1 per clip for heavier edits, each answering in checked JSON",
+      "Plans from $9 to $49 a month, priced so the worst-case user still leaves a margin",
+      "Four modes in one product: podcast to clips, voice to video, talking-head edit, captions",
+    ],
+    stack: ["Python · FastAPI", "Node.js", "Remotion", "faster-whisper", "OpenCV", "DeepSeek", "Stripe", "Docker"],
+    nodes: [
+      {
+        id: "app", label: "Clipzo App", kind: "input", x: 0, y: 200, tech: "FastAPI",
+        summary: "Where creators start a job: pick a mode, paste a link or upload, choose the edit level, caption style and music.",
+        responsibilities: [
+          "Stripe plans and “dino” credits, spent per reel and refunded if a job fails",
+          "Optional campaign brief: brand terms the edit should favour",
+        ],
+        io: { in: "Link or upload + options", out: "Job" },
+      },
+      {
+        id: "worker", label: "Job Worker", kind: "service", x: 300, y: 200, tech: "Python · render slot",
+        summary: "Takes one job at a time, downloads the source and runs the engine, showing progress live.",
+        responsibilities: [
+          "One machine-wide render slot so a small server never runs out of memory",
+          "Turns engine progress lines into the job's progress bar",
+        ],
+        io: { in: "Job", out: "Finished reels + manifest" },
+      },
+      {
+        id: "analyze", label: "Transcribe & Analyse", kind: "service", x: 600, y: 200, tech: "faster-whisper · OpenCV",
+        summary: "Writes a word-level transcript, finds pauses and tracks faces, then scores every possible clip.",
+        responsibilities: [
+          "Word timings for captions and for cutting at sentence boundaries",
+          "Face positions for the vertical crop; brief terms raise a clip's score",
+        ],
+        io: { in: "Source video", out: "Transcript, faces, scored candidates" },
+      },
+      {
+        id: "select", label: "Clip Selector", kind: "agent", x: 900, y: 40, tech: "LLM · JSON",
+        summary: "One call per batch: picks the best moments from the scored list and a music mood for each.",
+        responsibilities: ["Chooses from candidates the code already found, never free-form timestamps", "Output is checked against a schema; bad picks are rejected"],
+        io: { in: "Scored candidates + brief", out: "Chosen clips + music mood" },
+      },
+      {
+        id: "director", label: "Edit Director", kind: "agent", x: 900, y: 360, tech: "LLM · JSON",
+        summary: "One call per clip at Balanced or Heavy: decides where B-roll, GIFs, memes and title cards go.",
+        responsibilities: ["Picks from a fixed menu of edit moves the renderer knows", "Search terms for fresh assets per clip"],
+        io: { in: "Clip transcript", out: "Edit plan" },
+      },
+      {
+        id: "assets", label: "Asset Search", kind: "tool", x: 1200, y: 360, tech: "GIPHY · imgflip · Mixkit · Lottie",
+        summary: "Finds the GIFs, memes, stock B-roll, animations and music the edit plan asks for.",
+        io: { in: "Search terms", out: "Licensed assets" },
+      },
+      {
+        id: "render", label: "Renderer", kind: "service", x: 1200, y: 200, tech: "Remotion · headless Chrome",
+        summary: "Builds each reel: jump cuts, a cold-open teaser, face-tracked crop, captions and music cut to the beat.",
+        responsibilities: ["Bundles once per batch, renders every reel", "Writes the manifest after each reel, so a crash keeps finished work"],
+        io: { in: "Clips + edit plans", out: "1080×1920 MP4s" },
+      },
+      {
+        id: "publish", label: "Review & Publish", kind: "output", x: 1500, y: 200, tech: "Instagram · YouTube",
+        summary: "Each reel is scored and waits for approval, then gets a cover and is scheduled or posted.",
+      },
+    ],
+    edges: [
+      { id: "z1", from: "app", to: "worker", label: "job" },
+      { id: "z2", from: "worker", to: "analyze", kind: "control" },
+      { id: "z3", from: "analyze", to: "select", kind: "data", label: "candidates" },
+      { id: "z4", from: "select", to: "render", kind: "data", label: "clips" },
+      { id: "z5", from: "analyze", to: "director", kind: "data", label: "per clip" },
+      { id: "z6", from: "director", to: "assets", label: "search" },
+      { id: "z7", from: "director", to: "render", fromSide: "right", toSide: "bottom", kind: "data", label: "edit plan" },
+      { id: "z8", from: "render", to: "publish", label: "reels" },
+    ],
+    trace: {
+      prompt: "A 1-hour tech podcast, 6 clips, Heavy edit, karaoke captions, music on.",
+      steps: [
+        { node: "app", title: "Job started", detail: "Link pasted, Heavy edit and karaoke captions chosen; dinos reserved.", ms: 20 },
+        { node: "worker", edges: ["z1"], title: "Picked up", detail: "Render slot taken, source downloaded.", ms: 60000 },
+        { node: "analyze", edges: ["z2"], title: "Transcribed & scored", detail: "Word timings, pauses and faces found; candidate clips scored.", ms: 1260000 },
+        { node: "select", edges: ["z3"], title: "Clips chosen", detail: "6 moments picked from the scored list, each with a music mood.", ms: 20000 },
+        { node: "director", edges: ["z5"], title: "Edits planned", detail: "B-roll, GIF and title-card beats placed for each clip.", ms: 60000 },
+        { node: "assets", edges: ["z6"], title: "Assets fetched", detail: "Fresh B-roll, reaction GIFs and a music track found for each clip.", ms: 30000 },
+        { node: "render", edges: ["z4", "z7"], title: "Rendered", detail: "Jump cuts, face-tracked crop, captions and beat-synced music, 1080×1920.", ms: 2100000 },
+        { node: "publish", edges: ["z8"], title: "Ready for review", detail: "Each reel scored for hook, pacing, captions and length, waiting for approval.", ms: 10 },
+      ],
+    },
+    decisions: [
+      {
+        title: "Small, bounded AI calls; everything else is code",
+        why: "Transcribing, cutting, tracking and rendering are deterministic. The model only chooses: which clips, and which edit moves from a fixed menu, always as checked JSON. Batches stay cheap and predictable, and one bad answer can't break a render.",
+        tradeoff: "Less creative freedom per clip. The Monster mode, where a Claude agent directs the whole edit from a written brief, is built for customers who want that, and switched off until it is priced.",
+      },
+      {
+        title: "One render slot on a small server",
+        why: "Rendering is the heavy part, about 9–13 seconds per second of finished reel. One job at a time keeps a 2 vCPU / 4 GB server stable for an invite-only launch.",
+        tradeoff: "Jobs queue. The plan is a dedicated 8 vCPU worker before opening signups.",
+      },
+      {
+        title: "Price on the real cost, not the credit count",
+        why: "Importing a link costs about $1 in proxy traffic, so the monthly link allowance is what keeps each plan profitable. Even a user who maxes out the $9 plan costs no more than $5.",
+      },
+      {
+        title: "A person approves every post",
+        why: "Every reel waits in a review queue with its score. Nothing reaches Instagram or YouTube unless someone approves it.",
+      },
+    ],
+  },
+
+  {
     slug: "aegis",
     builtBy: "Solo: product, brand, architecture and code",
     // TODO: replace logo, palette and screenshots with the real product assets

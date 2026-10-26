@@ -55,6 +55,8 @@ export type Brand = {
   tone?: string;
   /** Paths under /public. Empty slots render as "add screenshot" frames. */
   screenshots?: { src?: string; caption: string }[];
+  /** A vertical sample video the product made. Paths under /public. */
+  reel?: { src: string; poster?: string; caption: string };
 };
 
 export type Decision ={ title: string; why: string; tradeoff?: string };

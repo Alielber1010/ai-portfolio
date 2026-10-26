@@ -23,6 +23,21 @@ export function BrandPanel({ project }: { project: Project }) {
         </div>
       )}
 
+      {brand.reel && (
+        <figure>
+          <h2 className="mb-2.5 font-mono text-[10px] uppercase tracking-widest text-ink-faint">Made with it</h2>
+          <video
+            src={brand.reel.src}
+            poster={brand.reel.poster}
+            controls
+            playsInline
+            preload="metadata"
+            className="mx-auto aspect-[9/16] w-full max-w-[280px] rounded-2xl border border-line bg-ink shadow-[var(--shadow-lift)]"
+          />
+          <figcaption className="mt-1.5 text-center text-xs text-ink-faint">{brand.reel.caption}</figcaption>
+        </figure>
+      )}
+
       {brand.colors?.length ? (
         <div>
           <h2 className="mb-2.5 font-mono text-[10px] uppercase tracking-widest text-ink-faint">Palette</h2>
