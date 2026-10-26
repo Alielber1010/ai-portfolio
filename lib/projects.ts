@@ -335,6 +335,153 @@ export const projects: Project[] = [
   },
 
   {
+    slug: "spooky-blooms",
+    builtBy: "Solo: brand, website, admin, AI box designer and hosting. Operators run the orders, content and delivery.",
+    brand: {
+      logo: "/projects/spooky-blooms/logo.png",
+      colors: [{ name: "Pumpkin Orange", hex: "#FF7A00" }, { name: "Witch Purple", hex: "#4B266F" }, { name: "Midnight Black", hex: "#0A0A0A" }, { name: "Bone Cream", hex: "#F5EDE1" }],
+      typeface: "Playfair Display · Montserrat",
+      tone: "“Fresh blooms. Spooky vibes.” Dark, elegant and playful: a Halloween boutique, not a costume shop.",
+      screenshots: [
+        { src: "/projects/spooky-blooms/admin-boxes-cards.png", caption: "Admin, Dress Me boxes: paste a WhatsApp order, the AI designer builds the story, one reveal card per guest and a sized kit. Print-ready PDF in one click" },
+        { src: "/projects/spooky-blooms/admin-boxes-list.png", caption: "The same box as a shopping list: prices against the budget, Shopee searches, and Bought / Packed ticks for each item" },
+        { src: "/projects/spooky-blooms/admin-boxes-kit.png", caption: "Each guest's kit on a mannequin, split into accessories, top and bottom, sized from their height and weight" },
+        { src: "/projects/spooky-blooms/admin-items.png", caption: "Admin, shop items: reorder, hide, mark sold out or feature on the home page, no developer needed" },
+        { src: "/projects/spooky-blooms/admin-editor.png", caption: "Adding a bouquet is one form: name, price, what's inside, photos. It is live on the site when saved" },
+        { src: "/projects/spooky-blooms/admin-plan.png", caption: "The Halloween plan inside the admin: dates, who does what, and the rule that nothing is bought before payment" },
+        { src: "/projects/spooky-blooms/home.png", caption: "Public site: Halloween bouquets, ordered on WhatsApp, delivered in Kuala Lumpur and Selangor" },
+        { src: "/projects/spooky-blooms/bouquet.png", caption: "A bouquet page with add-ons. The order button opens WhatsApp with the bouquet, extras and new total already written" },
+      ],
+    },
+    name: "Spooky Blooms",
+    tagline: "A Halloween flower shop whose admin lets one person run the whole season, with an AI that designs costume boxes.",
+    category: "E-commerce · AI Ops",
+    accent: "lavender",
+    status: "pilot",
+    year: "2026",
+    github: undefined, // private repo
+    demo: "https://spooky-blooms.pages.dev",
+    summary:
+      "Spooky Blooms is a Halloween 2026 pilot in Malaysia: spooky bouquets made by partner florists and “Dress Me for Halloween” mystery costume boxes, sold through Instagram ads and ordered on WhatsApp. The website is the easy part. The admin is what makes it work for the people running it. Operators add a bouquet, change a price, hide a sold-out item or set the delivery dates themselves, and it is live straight away. Each add-on shows what the florist charges and what we keep. The hardest job is designing a costume box by hand: picking a story, writing a sealed card for each guest and finding costume pieces that fit. Instead, the operator pastes the customer's WhatsApp order and an AI designer builds the whole box in minutes, with print-ready cards, a sized kit per guest and a shopping list with prices and Bought / Packed ticks.",
+    outcomes: [
+      "A costume box goes from a pasted WhatsApp order to print-ready cards and a priced shopping list in minutes",
+      "Operators change products, prices, photos, add-ons and delivery dates themselves, live in seconds, with no developer",
+      "Change one guest or the story by chatting (“make Arif a werewolf, no fake blood”); every version can be restored",
+      "Orders arrive on WhatsApp already written: bouquet, extras, new total, sizes and delivery details",
+    ],
+    stack: ["Cloudflare Pages + Functions", "Node.js", "Vanilla JS", "Claude Code CLI (headless)", "Docker", "systemd", "Cloudflare Tunnel"],
+    nodes: [
+      {
+        id: "shop", label: "Public Site", kind: "input", x: 0, y: 60, tech: "Cloudflare Pages",
+        summary: "Bouquets, party items and Dress Me boxes, each with add-ons and a WhatsApp order button.",
+        io: { in: "Customer from an Instagram ad", out: "Pre-written WhatsApp order" },
+      },
+      {
+        id: "admin", label: "Admin", kind: "input", x: 0, y: 320, tech: "Signed-cookie login",
+        summary: "Where the operators run the shop: shop items, add-ons, Dress Me boxes, settings and the Halloween plan.",
+        responsibilities: [
+          "Add, edit, reorder, hide or mark items sold out; photos are resized in the browser before upload",
+          "Add-ons show what the florist charges and the margin we keep (never sent to the public site)",
+          "Settings for WhatsApp number, delivery area and fee, delivery days and the last order day",
+        ],
+        io: { in: "Operator edits", out: "Live site changes, box jobs" },
+      },
+      {
+        id: "proxy", label: "Pages Functions", kind: "service", x: 300, y: 180, tech: "Edge proxy",
+        summary: "Forwards /api and /uploads to the backend with a shared key, so the backend is never reachable directly.",
+      },
+      {
+        id: "api", label: "Shop API", kind: "service", x: 600, y: 180, tech: "Node.js · zero dependencies",
+        summary: "Products, add-ons, photos, settings and sign-in, stored as files.",
+        responsibilities: [
+          "Answers 403 without the proxy key",
+          "Rate-limited sign-in, signed session cookie",
+          "Strips florist costs from everything public",
+        ],
+      },
+      {
+        id: "store", label: "Shop Data", kind: "data", x: 900, y: 40, tech: "JSON + images",
+        summary: "Bouquets, add-ons, settings and photos, plus one order file and one run file per costume box.",
+      },
+      {
+        id: "runner", label: "Agent Runner", kind: "service", x: 900, y: 320, tech: "systemd · Node",
+        summary: "Watches for new box messages and runs the designer one job at a time, with a 12-minute limit and a Stop button.",
+        responsibilities: [
+          "Talks to the API only through files, so the web container needs no AI access",
+          "Resumes the same agent session per box, so follow-up chats keep context",
+          "Keeps the last 20 versions of every box",
+        ],
+      },
+      {
+        id: "designer", label: "Box Designer Agent", kind: "agent", x: 1200, y: 320, tech: "Claude Code CLI",
+        summary: "Turns an order into a story, a sealed identity card per guest and a costume kit that fits.",
+        responsibilities: [
+          "Reads the house rules: budget, card word limits, characters, stories, avoid list",
+          "Accessory-first kits; wearables only if loose or free-size, picked from height and top size",
+          "Prices each item from typical Shopee Malaysia prices and writes the search phrase",
+        ],
+        io: { in: "Pasted order or an instruction for one guest", out: "Box JSON" },
+      },
+      {
+        id: "tools", label: "Checks & Pictures", kind: "tool", x: 1500, y: 200, tech: "check.js · find-image.js",
+        summary: "A validator the agent must pass, and a picture finder for each character (Wikipedia, Commons, movie posters).",
+      },
+      {
+        id: "box", label: "Box Preview", kind: "output", x: 1500, y: 420, tech: "Card studio",
+        summary: "Cards to edit, print or save as PDF, kits on a mannequin, and a shopping list with Bought / Packed ticks.",
+      },
+      {
+        id: "wa", label: "WhatsApp Order", kind: "output", x: 300, y: -60,
+        summary: "Bouquet, extras, total, delivery and sizes in one message. Payment first, then the florist is paid.",
+      },
+    ],
+    edges: [
+      { id: "s1", from: "shop", to: "proxy" },
+      { id: "s2", from: "admin", to: "proxy", label: "edits" },
+      { id: "s3", from: "proxy", to: "api", label: "proxy key" },
+      { id: "s4", from: "api", to: "store", kind: "data" },
+      { id: "s5", from: "store", to: "runner", fromSide: "bottom", toSide: "top", kind: "data", label: "new message" },
+      { id: "s6", from: "runner", to: "designer", kind: "control", label: "claude -p" },
+      { id: "s7", from: "designer", to: "tools", label: "check + find" },
+      { id: "s8", from: "designer", to: "box", fromSide: "bottom", toSide: "left", kind: "data", label: "box JSON" },
+      { id: "s9", from: "shop", to: "wa", fromSide: "top", toSide: "left", label: "order" },
+    ],
+    trace: {
+      prompt: "Squad box for 4 office friends (Arif, Siti, Raj, Lina) with their sizes, no masks, delivery 28 Oct. Pasted from WhatsApp.",
+      steps: [
+        { node: "admin", title: "Order pasted", detail: "The operator opens Dress Me boxes, pastes the WhatsApp message and presses Design the box.", ms: 20 },
+        { node: "proxy", edges: ["s2"], title: "Forwarded", detail: "Signed-in request passed to the backend with the proxy key.", ms: 40 },
+        { node: "api", edges: ["s3"], title: "Message saved", detail: "Stored as the box's order file; the page starts showing live steps.", ms: 30 },
+        { node: "runner", edges: ["s4", "s5"], title: "Job picked up", detail: "Runner sees the new message and starts the designer in its own session.", ms: 2000 },
+        { node: "designer", edges: ["s6"], title: "Box designed", detail: "Story “The Graveyard Shift”: four characters, each with a mission that links to the others.", ms: 240000 },
+        { node: "tools", edges: ["s7"], title: "Checked", detail: "Card limits and kit rules pass; a picture is found for every character.", ms: 30000 },
+        { node: "box", edges: ["s8"], title: "Ready to print", detail: "Cards as PDF, a kit per guest, RM116 shopping list against an RM88–120 budget.", ms: 50 },
+        { node: "admin", title: "One change", detail: "“Cheaper kit for Siti” is sent about Siti only; the rest of the box stays as it was.", ms: 90000 },
+      ],
+    },
+    decisions: [
+      {
+        title: "The admin is the product for the people running it",
+        why: "The operators are not developers. Every routine change, from a new bouquet to a sold-out add-on or the last order day, is a form in the admin that goes live at once, so nobody waits on me during the busiest three weeks of the year.",
+      },
+      {
+        title: "Chat about one part, not the whole box",
+        why: "Real changes are small: one guest dislikes clowns, one kit is too expensive. Each message is aimed at the whole box, one guest or the story, and the agent changes only that part. Quick actions fill in the common requests.",
+        tradeoff: "Hand edits to card text stay in the browser until “Save my edits” turns them into a version, so the agent never overwrites someone's wording by surprise.",
+      },
+      {
+        title: "Keep the AI out of the web container",
+        why: "The agent runs as a separate host service and talks to the shop only through files. The public-facing container has no AI credentials and a crashed run can't take the shop down.",
+      },
+      {
+        title: "Orders first, on WhatsApp",
+        why: "Customers from Instagram ads already chat on WhatsApp, so the site writes the order message for them. Nothing is bought, from flowers to costume pieces, until the customer has paid.",
+        tradeoff: "No online checkout; payment is checked by a person. Fine for a three-week pilot.",
+      },
+    ],
+  },
+
+  {
     // Under NDA: no code, no product or client names. Diagrams and descriptions only.
     slug: "cad-drafting-agents",
     builtBy: "Remote contract with a confidential US construction-tech startup (Jun – Oct 2026). I designed and built the agent pipeline, the MCP layer and the evals, and contributed to the team's ingestion pipeline.",
