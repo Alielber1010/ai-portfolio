@@ -1223,29 +1223,27 @@ const room = ROOM_GUIDE[String(body.room).trim().toLowerCase()] ?? GENERIC;`,
 
   {
     slug: "aegis",
-    builtBy: "Solo: product, brand, architecture and code",
-    // TODO: replace logo, palette and screenshots with the real product assets
+    builtBy: "Solo: product, brand, architecture and code. In progress.",
     brand: {
       logo: "/projects/aegis/logo.svg",
       colors: [{ name: "Aegis Violet", hex: "#6247E0" }, { name: "Ink", hex: "#1D1E29" }, { name: "Mist", hex: "#EBE6FF" }, { name: "Signal", hex: "#19845A" }],
       typeface: "Geist",
       tone: "Shield-like mark; calm, trustworthy research tool.",
-      screenshots: [{ caption: "Main screen" }, { caption: "Detail view" }, { caption: "Mobile" }],
     },
     name: "Aegis",
-    tagline: "A team of AI agents that plans, researches and checks its own work.",
+    tagline: "On the way: a team of AI agents that plans, researches and checks its own work.",
     category: "Agentic Intelligence",
     accent: "lavender",
-    status: "production",
+    status: "building",
     year: "2026",
-    github: "https://github.com/Alielber1010", // TODO: point at this project’s repo
-    demo: undefined, // TODO: live demo or video URL
+    github: undefined, // not public yet
+    demo: undefined,
     summary:
-      "Aegis takes an open-ended business question and splits it across specialised AI agents — a planner, a researcher, an analyst and a critic — then returns a sourced, reviewed report. It replaces hours of manual desk research with a few minutes of supervised automation.",
+      "Aegis is in progress. It takes an open-ended business question and splits it across specialised AI agents — a planner, a researcher, an analyst and a critic — then returns a sourced, reviewed report. The goal is to replace hours of manual desk research with a few minutes of supervised automation. The diagram and walkthrough below are the design I am building to, not measured results yet.",
     outcomes: [
-      "Research reports in minutes instead of hours",
-      "Every claim is linked back to a source",
-      "A critic agent rejects weak answers before a human sees them",
+      "Goal: research reports in minutes instead of hours",
+      "Goal: every claim linked back to a source",
+      "Design: a critic agent rejects weak answers before a human sees them",
     ],
     stack: ["LangGraph", "Claude", "FastAPI", "pgvector", "Docker", "Redis"],
     nodes: [
@@ -1375,341 +1373,130 @@ verdict = llm.with_structured_output(Verdict)`,
   },
 
   {
-    slug: "construction-ai",
-    builtBy: "Solo: product, brand, architecture and code",
-    // TODO: replace logo, palette and screenshots with the real product assets
+    slug: "erp-ifrs-mcp",
+    builtBy: "Solo: architecture, IFRS engine, MCP server and code",
     brand: {
-      logo: "/projects/construction-ai/logo.svg",
-      colors: [{ name: "Safety Orange", hex: "#E8641B" }, { name: "Concrete", hex: "#3B3F46" }, { name: "Sand", hex: "#F4E9DC" }, { name: "Steel", hex: "#7C8896" }],
-      typeface: "Inter Tight",
-      tone: "Sturdy, practical, site-ready: big type, high contrast.",
-      screenshots: [{ caption: "Main screen" }, { caption: "Detail view" }, { caption: "Mobile" }],
-    },
-    name: "Construction AI",
-    tagline: "Reads construction documents and turns them into clean, checked data.",
-    category: "Document Automation",
-    accent: "peach",
-    status: "pilot",
-    year: "2025",
-    github: "https://github.com/Alielber1010", // TODO: point at this project’s repo
-    demo: undefined, // TODO: live demo or video URL
-    summary:
-      "Construction firms receive thousands of invoices, delivery notes and change orders as scanned PDFs. This system reads them, pulls out the important fields, checks them against project rules, and only asks a human when something looks wrong.",
-    outcomes: [
-      "Manual data entry reduced to exception handling",
-      "Every extracted field carries a confidence score",
-      "Rule violations are flagged before they reach accounting",
-    ],
-    stack: ["Python", "Azure Document Intelligence", "GPT-4o", "Pydantic", "PostgreSQL", "Celery"],
-    nodes: [
-      {
-        id: "upload", label: "Document Upload", kind: "input", x: 0, y: 160,
-        summary: "Scanned PDFs, photos and emails arrive from site managers and suppliers.",
-        io: { in: "PDF / JPG / email", out: "Stored file + job id" },
-      },
-      {
-        id: "ocr", label: "OCR & Layout", kind: "service", x: 290, y: 160, tech: "Document Intelligence",
-        summary: "Converts each page into text while keeping tables and positions intact.",
-        io: { in: "File", out: "Text + tables + bounding boxes" },
-      },
-      {
-        id: "classify", label: "Classifier", kind: "agent", x: 580, y: 160, tech: "gpt-4o-mini",
-        summary: "Decides what kind of document it is — invoice, delivery note, change order…",
-        io: { in: "Layout text", out: "doc_type + confidence" },
-      },
-      {
-        id: "extract", label: "Extractor", kind: "agent", x: 870, y: 160, tech: "gpt-4o",
-        summary: "Pulls out the fields that matter for that document type.",
-        responsibilities: ["One Pydantic schema per document type", "Returns the source region for every field", "Retries with a narrower prompt on schema failure"],
-        io: { in: "Layout text + doc_type", out: "Typed record" },
-        code: {
-          lang: "python",
-          snippet: `class Invoice(BaseModel):
-    supplier: str
-    invoice_no: str
-    project_code: str
-    lines: list[LineItem]
-    total: Decimal
-    evidence: dict[str, BBox]  # where each field came from`,
-        },
-      },
-      {
-        id: "validate", label: "Validator", kind: "agent", x: 1160, y: 160, tech: "rules + LLM",
-        summary: "Checks the numbers add up and match the project budget and purchase orders.",
-        responsibilities: ["Deterministic checks first (totals, VAT, dates)", "LLM only for fuzzy matching (supplier names)", "Produces a list of explained issues"],
-        io: { in: "Typed record", out: "pass | issues[]" },
-      },
-      {
-        id: "rules", label: "Project Rules & POs", kind: "data", x: 1160, y: 360, tech: "PostgreSQL",
-        summary: "Budgets, purchase orders and approved suppliers for every project.",
-      },
-      {
-        id: "review", label: "Human Review", kind: "service", x: 1450, y: 20,
-        summary: "A simple screen where someone fixes only the flagged fields.",
-        io: { in: "Record + highlighted issues", out: "Corrected record" },
-      },
-      {
-        id: "erp", label: "ERP Export", kind: "output", x: 1450, y: 260,
-        summary: "Clean data is pushed into the accounting system automatically.",
-      },
-    ],
-    edges: [
-      { id: "c1", from: "upload", to: "ocr" },
-      { id: "c2", from: "ocr", to: "classify", kind: "data" },
-      { id: "c3", from: "classify", to: "extract", label: "doc_type" },
-      { id: "c4", from: "extract", to: "validate", kind: "data", label: "record" },
-      { id: "c5", from: "rules", to: "validate", fromSide: "top", toSide: "bottom", kind: "data" },
-      { id: "c6", from: "validate", to: "review", label: "issues" },
-      { id: "c7", from: "validate", to: "erp", label: "pass" },
-      { id: "c8", from: "review", to: "erp", fromSide: "bottom", toSide: "top", label: "fixed" },
-    ],
-    trace: {
-      prompt: "Supplier invoice INV-20931 (3 pages, scanned).",
-      steps: [
-        { node: "upload", title: "Received", detail: "3-page scan uploaded from site tablet.", ms: 20 },
-        { node: "ocr", edges: ["c1"], title: "Layout parsed", detail: "2 tables, 41 lines detected.", ms: 2300 },
-        { node: "classify", edges: ["c2"], title: "Classified", detail: "invoice (0.98).", ms: 600 },
-        { node: "extract", edges: ["c3"], title: "Fields extracted", detail: "14 fields + 22 line items, all schema-valid.", ms: 4100 },
-        { node: "validate", edges: ["c4", "c5"], title: "Validated", detail: "Line total ≠ PO amount on item 7 → 1 issue.", ms: 380 },
-        { node: "review", edges: ["c6"], title: "Human fix", detail: "Reviewer corrected quantity on line 7.", ms: 45000 },
-        { node: "erp", edges: ["c8"], title: "Exported", detail: "Posted to ERP with audit trail.", ms: 210 },
-      ],
-    },
-    decisions: [
-      {
-        title: "Rules before LLMs in validation",
-        why: "Arithmetic and date checks are cheaper and 100% reliable in code. The LLM is only used where judgment is needed.",
-      },
-      {
-        title: "Field-level evidence",
-        why: "Storing the page region for every field lets reviewers verify in one glance — this is what made people trust the system.",
-      },
-      {
-        title: "Human-in-the-loop on exceptions only",
-        why: "Reviewing everything defeats the purpose; reviewing nothing is risky. Routing only flagged documents kept both speed and safety.",
-      },
-    ],
-  },
-
-  {
-    slug: "hybrid-rag",
-    builtBy: "Solo: product, brand, architecture and code",
-    // TODO: replace logo, palette and screenshots with the real product assets
-    brand: {
-      logo: "/projects/hybrid-rag/logo.svg",
-      colors: [{ name: "Leaf", hex: "#19845A" }, { name: "Paper", hex: "#FAFAF7" }, { name: "Graphite", hex: "#2B2D35" }, { name: "Mint", hex: "#DCF5E9" }],
-      typeface: "Geist",
-      tone: "Quiet and trustworthy: answers first, sources always visible.",
-      screenshots: [{ caption: "Main screen" }, { caption: "Detail view" }, { caption: "Mobile" }],
-    },
-    name: "Hybrid RAG",
-    tagline: "Answers questions from company documents — with sources you can check.",
-    category: "Retrieval Systems",
-    accent: "mint",
-    status: "production",
-    year: "2025",
-    github: "https://github.com/Alielber1010", // TODO: point at this project’s repo
-    demo: undefined, // TODO: live demo or video URL
-    summary:
-      "A question-answering assistant over internal knowledge. It combines keyword and semantic search, re-ranks the results and only answers from what it found — every sentence comes with a citation, and it says “I don’t know” instead of guessing.",
-    outcomes: [
-      "Keyword + semantic search beats either alone",
-      "Answers cite the exact passage they came from",
-      "Evaluated continuously on a golden question set",
-    ],
-    stack: ["Python", "pgvector", "BM25", "Cohere Rerank", "Claude", "Ragas"],
-    nodes: [
-      {
-        id: "docs", label: "Source Documents", kind: "data", x: 0, y: 380,
-        summary: "PDFs, wikis and tickets — the company’s knowledge.",
-      },
-      {
-        id: "ingest", label: "Chunk & Embed", kind: "service", x: 290, y: 380, tech: "bge-m3",
-        summary: "Splits documents into passages and turns them into searchable vectors.",
-        responsibilities: ["Structure-aware chunking (headings, tables)", "Adds title + section to each chunk", "Incremental re-indexing on change"],
-      },
-      {
-        id: "q", label: "User Question", kind: "input", x: 0, y: 120,
-        summary: "“What is our refund policy for enterprise customers?”",
-      },
-      {
-        id: "rewrite", label: "Query Rewriter", kind: "agent", x: 290, y: 120, tech: "claude-haiku",
-        summary: "Rewrites the question into better search queries.",
-        io: { in: "Question + chat history", out: "2–4 search queries" },
-      },
-      {
-        id: "bm25", label: "Keyword Index", kind: "memory", x: 600, y: 20, tech: "BM25",
-        summary: "Finds passages that share exact words — great for names and codes.",
-      },
-      {
-        id: "vec", label: "Vector Index", kind: "memory", x: 600, y: 240, tech: "pgvector · HNSW",
-        summary: "Finds passages that mean the same thing, even with different wording.",
-      },
-      {
-        id: "fuse", label: "Fusion + Rerank", kind: "model", x: 900, y: 120, tech: "RRF · cohere-rerank",
-        summary: "Merges both result lists and keeps only the most relevant passages.",
-        code: {
-          lang: "python",
-          snippet: `def rrf(results: list[list[Doc]], k=60):
-    scores = defaultdict(float)
-    for ranked in results:
-        for rank, doc in enumerate(ranked):
-            scores[doc.id] += 1 / (k + rank)
-    return sorted(scores, key=scores.get, reverse=True)`,
-        },
-      },
-      {
-        id: "gen", label: "Answer Generator", kind: "agent", x: 1200, y: 120, tech: "claude-sonnet",
-        summary: "Writes the answer using only the retrieved passages.",
-        responsibilities: ["Cites a passage id for every sentence", "Abstains when evidence is missing"],
-      },
-      {
-        id: "cite", label: "Citation Check", kind: "tool", x: 1200, y: 330,
-        summary: "Verifies each citation actually supports its sentence.",
-      },
-      {
-        id: "ans", label: "Cited Answer", kind: "output", x: 1500, y: 120,
-        summary: "The answer, with clickable sources.",
-      },
-    ],
-    edges: [
-      { id: "r1", from: "docs", to: "ingest" },
-      { id: "r2", from: "ingest", to: "vec", kind: "data" },
-      { id: "r3", from: "ingest", to: "bm25", kind: "data", fromSide: "top", toSide: "left" },
-      { id: "r4", from: "q", to: "rewrite" },
-      { id: "r5", from: "rewrite", to: "bm25", label: "keywords" },
-      { id: "r6", from: "rewrite", to: "vec", label: "embedding" },
-      { id: "r7", from: "bm25", to: "fuse", kind: "data" },
-      { id: "r8", from: "vec", to: "fuse", kind: "data" },
-      { id: "r9", from: "fuse", to: "gen", label: "top-8" },
-      { id: "r10", from: "gen", to: "cite", fromSide: "bottom", toSide: "top" },
-      { id: "r11", from: "gen", to: "ans" },
-    ],
-    trace: {
-      prompt: "What is our refund policy for enterprise customers?",
-      steps: [
-        { node: "q", title: "Question in", detail: "Short question, no chat history.", ms: 5 },
-        { node: "rewrite", edges: ["r4"], title: "Rewritten", detail: "3 queries incl. “enterprise refund SLA”.", ms: 420 },
-        { node: "bm25", edges: ["r5"], title: "Keyword search", detail: "20 hits.", ms: 30 },
-        { node: "vec", edges: ["r6"], title: "Semantic search", detail: "20 hits, 11 overlap with keyword results.", ms: 45 },
-        { node: "fuse", edges: ["r7", "r8"], title: "Fused & reranked", detail: "29 candidates → top 8 passages.", ms: 260 },
-        { node: "gen", edges: ["r9"], title: "Answer drafted", detail: "4 sentences, 4 citations.", ms: 1900 },
-        { node: "cite", edges: ["r10"], title: "Citations verified", detail: "4/4 supported.", ms: 600 },
-        { node: "ans", edges: ["r11"], title: "Answered", detail: "Delivered with links to 2 policy docs.", ms: 10 },
-      ],
-    },
-    decisions: [
-      {
-        title: "Hybrid retrieval over pure vectors",
-        why: "Embeddings miss exact identifiers (SKUs, contract numbers). BM25 catches them; fusion keeps the best of both.",
-      },
-      {
-        title: "Abstain instead of guess",
-        why: "A confident wrong answer costs more trust than “I couldn’t find that”. The generator is instructed and evaluated on abstention.",
-      },
-      {
-        title: "Evaluation as a first-class component",
-        why: "A golden set of real questions runs on every change, so retrieval tweaks are measured, not guessed.",
-      },
-    ],
-  },
-
-  {
-    slug: "mcp-integrations",
-    builtBy: "Solo: product, brand, architecture and code",
-    // TODO: replace logo, palette and screenshots with the real product assets
-    brand: {
-      logo: "/projects/mcp-integrations/logo.svg",
+      logo: "/projects/erp-ifrs-mcp/logo.svg",
       colors: [{ name: "Circuit Blue", hex: "#2470BD" }, { name: "Night", hex: "#121826" }, { name: "Sky", hex: "#DDEEFC" }, { name: "Amber", hex: "#E2A23B" }],
       typeface: "JetBrains Mono",
-      tone: "Technical but friendly: a developer tool that feels safe.",
-      screenshots: [{ caption: "Main screen" }, { caption: "Detail view" }, { caption: "Mobile" }],
+      tone: "A finance tool for AI assistants: precise, read-only and auditable.",
     },
-    name: "MCP Integrations",
-    tagline: "Gives AI assistants safe, audited access to real company tools.",
+    name: "ERP IFRS MCP Server",
+    tagline: "Lets an AI assistant query ERP data in plain English and produce IFRS calculations and financial statements.",
     category: "Tools & APIs",
     accent: "sky",
-    status: "production",
+    status: "pilot",
     year: "2026",
-    github: "https://github.com/Alielber1010", // TODO: point at this project’s repo
-    demo: undefined, // TODO: live demo or video URL
+    github: "https://github.com/Alielber1010/ERP-LLM-IFRS-MCP-Server",
+    demo: undefined,
     summary:
-      "A set of Model Context Protocol servers that let AI assistants work with GitHub, the company database and internal docs — with per-user permissions, read-only defaults and a full audit log of every action an AI takes.",
+      "An MCP server that connects AI assistants such as Claude, ChatGPT, Copilot or Dify to an ERP database. It exposes 28 tools: plain-English questions about orders, products, inventory and customers, the IFRS data itself (trial balance, fixed assets, leases, contracts, receivables, group structure), IFRS calculations (IFRS 16 leases, IFRS 15 revenue, IFRS 9 expected credit loss, IAS 16 depreciation, IAS 36 impairment, IFRS 10 consolidation and NCI), and full statement generation: P&L, balance sheet, cash flow, changes in equity and disclosure notes. The numbers are calculated in Python, not guessed by the model, so an assistant can explain a lease schedule or a consolidated P&L and every figure traces back to the data. It runs on seeded sample data for a five-company group.",
     outcomes: [
-      "One protocol, many assistants (Claude, IDEs, internal bots)",
-      "Every tool call is permission-checked and logged",
-      "New tools ship in under a day",
+      "28 MCP tools in one server: ERP queries, IFRS data, calculations and statements",
+      "Covers IFRS 16, IFRS 15, IFRS 9, IAS 16, IAS 36 and IFRS 10, including consolidation with NCI",
+      "Read-only data access, with SSNs, emails, phones and card numbers masked before the model sees them",
+      "Works with any MCP client; a ready system prompt is included for finance assistants",
     ],
-    stack: ["TypeScript", "MCP SDK", "OAuth 2.1", "PostgreSQL", "GitHub API", "Docker"],
+    stack: ["Python", "FastAPI", "FastMCP", "SQLAlchemy", "SQLite (demo) · REST / OData connectors", "OpenAI (optional)", "JWT · RBAC"],
     nodes: [
       {
-        id: "client", label: "AI Assistant", kind: "agent", x: 0, y: 180, tech: "Claude / IDE",
-        summary: "Any MCP-compatible assistant that wants to use a tool.",
+        id: "client", label: "AI Assistant", kind: "agent", x: 0, y: 200, tech: "Claude · ChatGPT · Copilot · Dify",
+        summary: "Any MCP client. It picks a tool, passes the inputs and explains the result to the user.",
+        io: { in: "“What is our IFRS 16 lease liability?”", out: "Tool call" },
       },
       {
-        id: "gw", label: "MCP Gateway", kind: "service", x: 300, y: 180, tech: "Streamable HTTP",
-        summary: "One front door: discovers tools, routes calls, enforces limits.",
-        responsibilities: ["Tool discovery & schema versioning", "Rate limiting per user", "Streams results back"],
+        id: "mcp", label: "MCP Server", kind: "service", x: 300, y: 200, tech: "FastMCP on FastAPI · /mcp",
+        summary: "One endpoint with 28 typed tools, mounted inside the FastAPI app.",
+        responsibilities: [
+          "ERP query tools (4), IFRS data tools (10), calculation tools (8), statement tools (6)",
+          "Each tool opens a database session and closes it when done",
+        ],
+        io: { in: "Tool name + arguments", out: "JSON, CSV, markdown or plain text" },
         code: {
-          lang: "ts",
-          snippet: `server.registerTool("query_db", {
-  description: "Run a read-only SQL query",
-  inputSchema: { sql: z.string() },
-}, async ({ sql }, ctx) => {
-  await authorize(ctx.user, "db:read");
-  return audit(ctx, () => db.readonly(sql));
-});`,
+          lang: "python",
+          snippet: `mcp = FastMCP("ERP LLM")
+
+@mcp.tool
+def query_erp(query: str, format: str = "natural") -> str:
+    intent = _query_processor.process_query(query)
+    raw = erp_connector.get_data(entity=intent["entity_type"], ...)
+    masked = DataMasker.mask_data(raw)   # before any model sees it`,
         },
       },
       {
-        id: "auth", label: "Auth & Policy", kind: "service", x: 300, y: 400, tech: "OAuth 2.1",
-        summary: "Checks who is asking and what they are allowed to do.",
+        id: "nlq", label: "Query Processor", kind: "agent", x: 620, y: 0, tech: "Intent + optional LLM",
+        summary: "Turns a plain-English question into an entity, filters, time period and limit.",
+        io: { in: "Question", out: "Structured request" },
       },
       {
-        id: "gh", label: "GitHub Tools", kind: "tool", x: 640, y: 0,
-        summary: "Read issues and PRs, open draft PRs.",
+        id: "ifrs", label: "IFRS Engine", kind: "tool", x: 620, y: 200, tech: "Python calculations",
+        summary: "Present value of lease payments, ECL staging, depreciation, impairment, revenue allocation and consolidation.",
+        responsibilities: [
+          "IFRS 16: liability, right-of-use asset and the full amortisation schedule",
+          "IFRS 9: receivables staged by days overdue, provision per stage",
+          "IFRS 10: intercompany eliminations and non-controlling interests",
+        ],
       },
       {
-        id: "db", label: "Database Tools", kind: "tool", x: 640, y: 180,
-        summary: "Read-only SQL with row limits and schema hints.",
+        id: "stmts", label: "Statement Generator", kind: "tool", x: 620, y: 400, tech: "generators.py",
+        summary: "P&L, balance sheet, cash flow (indirect), changes in equity and disclosure notes, per entity or consolidated.",
       },
       {
-        id: "kb", label: "Docs Tools", kind: "tool", x: 640, y: 360,
-        summary: "Search and read internal documentation.",
+        id: "mask", label: "Masking & Formatting", kind: "service", x: 940, y: 0, tech: "Preprocessing",
+        summary: "Masks SSNs, emails, phones and card numbers, and formats data as JSON, CSV, markdown or a summary.",
       },
       {
-        id: "audit", label: "Audit Log", kind: "data", x: 960, y: 180, tech: "PostgreSQL",
-        summary: "A permanent record of every action an AI took, and for whom.",
+        id: "conn", label: "ERP Connectors", kind: "service", x: 940, y: 200, tech: "Read-only",
+        summary: "One interface over a local database, a SQL ERP, REST APIs or OData, so a real ERP can replace the demo data.",
+      },
+      {
+        id: "db", label: "ERP + IFRS Data", kind: "data", x: 1240, y: 200, tech: "SQLAlchemy · SQLite demo",
+        summary: "Seeded group: 5 entities, $32.7M fixed assets, 3 leases, 5 revenue contracts, 50 receivables, intercompany flows.",
+      },
+      {
+        id: "rest", label: "REST API & Web UI", kind: "output", x: 300, y: 420, tech: "JWT · RBAC · audit log",
+        summary: "The same engine for people: a query page and REST endpoints with login, roles and an audit log.",
       },
     ],
     edges: [
-      { id: "m1", from: "client", to: "gw", label: "tools/call" },
-      { id: "m2", from: "gw", to: "auth", fromSide: "bottom", toSide: "top", kind: "control" },
-      { id: "m3", from: "gw", to: "gh" },
-      { id: "m4", from: "gw", to: "db" },
-      { id: "m5", from: "gw", to: "kb" },
-      { id: "m6", from: "gh", to: "audit", kind: "data" },
-      { id: "m7", from: "db", to: "audit", kind: "data" },
-      { id: "m8", from: "kb", to: "audit", kind: "data" },
+      { id: "x1", from: "client", to: "mcp", label: "tools/call" },
+      { id: "x2", from: "mcp", to: "nlq", fromSide: "top", toSide: "left", kind: "control", label: "ERP question" },
+      { id: "x3", from: "mcp", to: "ifrs", kind: "control", label: "calculate" },
+      { id: "x4", from: "mcp", to: "stmts", fromSide: "bottom", toSide: "left", kind: "control", label: "generate" },
+      { id: "x5", from: "nlq", to: "mask", kind: "data" },
+      { id: "x6", from: "ifrs", to: "conn", kind: "data", label: "read" },
+      { id: "x7", from: "mask", to: "conn", fromSide: "bottom", toSide: "top", kind: "data", label: "read" },
+      { id: "x8", from: "conn", to: "db", kind: "data" },
+      { id: "x9", from: "stmts", to: "ifrs", fromSide: "top", toSide: "bottom", kind: "data", label: "uses" },
     ],
     trace: {
-      prompt: "“How many enterprise signups did we get last week?”",
+      prompt: "“What is the lease liability for the Singapore warehouse, and how does it hit the balance sheet?”",
       steps: [
-        { node: "client", title: "Tool chosen", detail: "Assistant picks query_db.", ms: 900 },
-        { node: "gw", edges: ["m1"], title: "Call received", detail: "Schema-validated input.", ms: 8 },
-        { node: "auth", edges: ["m2"], title: "Authorized", detail: "User has db:read on analytics schema.", ms: 15 },
-        { node: "db", edges: ["m4"], title: "Query run", detail: "Read-only replica, 1 row returned.", ms: 120 },
-        { node: "audit", edges: ["m7"], title: "Logged", detail: "Call, user, SQL and row count stored.", ms: 6 },
+        { node: "client", title: "Tool chosen", detail: "The assistant calls get_lease_portfolio, then calculate_ifrs16_lease_liability.", ms: 900 },
+        { node: "mcp", edges: ["x1"], title: "Call received", detail: "Arguments checked against the tool's typed signature.", ms: 10 },
+        { node: "ifrs", edges: ["x3"], title: "Liability calculated", detail: "Future payments discounted at the incremental borrowing rate; right-of-use asset and monthly schedule built.", ms: 40 },
+        { node: "conn", edges: ["x6"], title: "Lease read", detail: "Payments, term and rate read from the lease register, read-only.", ms: 20 },
+        { node: "db", edges: ["x8"], title: "Data returned", detail: "One active lease row for the Singapore warehouse.", ms: 10 },
+        { node: "client", title: "Explained", detail: "The assistant explains the liability, the ROU asset and the first year's interest and depreciation, with the schedule as a table.", ms: 2500 },
       ],
     },
     decisions: [
       {
-        title: "A gateway instead of many direct servers",
-        why: "Central auth, rate limits and audit — adding a new tool doesn’t mean re-implementing security.",
+        title: "Calculate in code, let the model explain",
+        why: "Language models are unreliable at multi-step accounting maths. Every IFRS number comes from a Python function with a test-friendly signature; the model only picks tools and explains the results.",
       },
       {
-        title: "Read-only by default",
-        why: "Write tools require an explicit scope and produce drafts (e.g. draft PRs) a human approves.",
+        title: "An MCP server, not another chatbot",
+        why: "Finance teams already have an assistant they like. Exposing the engine over MCP means Claude, ChatGPT, Copilot or Dify can all use the same 28 tools without a new interface.",
+      },
+      {
+        title: "Mask before the model, read-only always",
+        why: "ERP data holds personal details. Masking runs on every result before it leaves the server, and the connectors only read, so an assistant can never change the books.",
+      },
+      {
+        title: "Connectors behind one interface",
+        why: "The demo runs on SQLite, but the same tools work over a SQL ERP, REST or OData connector, so pointing it at a real ERP is configuration, not a rewrite.",
+        tradeoff: "The REST API has JWT login and roles; the /mcp endpoint itself has no auth yet, so it is meant to run locally or behind a private tunnel.",
       },
     ],
   },

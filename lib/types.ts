@@ -67,7 +67,7 @@ export type Project = {
   tagline: string;
   category: string;
   accent: "lavender" | "mint" | "sky" | "peach";
-  status: "production" | "pilot" | "research";
+  status: "production" | "pilot" | "research" | "building";
   year: string;
   /** Recruiter-friendly: what problem, for whom, what result. */
   summary: string;

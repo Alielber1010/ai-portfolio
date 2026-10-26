@@ -10,6 +10,7 @@ const STATUS: Record<Project["status"], string> = {
   production: "In production",
   pilot: "Pilot",
   research: "Research",
+  building: "In progress",
 };
 
 // Buttons sit above the card's stretched link, hence `relative z-10`.
