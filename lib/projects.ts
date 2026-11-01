@@ -1070,6 +1070,162 @@ export const projects: Project[] = [
   },
 
   {
+    slug: "lendloop",
+    builtBy: "Solo: product, UI, Convex backend, n8n workflows, security design and deployment",
+    brand: {
+      logo: "/projects/lendloop/logo.svg",
+      colors: [{ name: "Amber", hex: "#F0A54A" }, { name: "Cream", hex: "#FFFAF2" }, { name: "Bubble Ink", hex: "#2A1806" }, { name: "Overdue Red", hex: "#C4362F" }],
+      typeface: "Fraunces · Work Sans",
+      tone: "“Borrow what you need. Lend what you don't.” Warm, neighbourly and calm, with a pixel avatar for every neighbour.",
+      screenshots: [
+        { src: "/projects/lendloop/landing.png", caption: "Signed out: the tagline and a read-only shelf that shows tool name and category only" },
+        { src: "/projects/lendloop/board.png", caption: "All tools, with live availability (available, on loan, overdue) and a category filter" },
+        { src: "/projects/lendloop/incoming.png", caption: "Incoming requests for a lender: approve, decline or mark returned, with what the automations did on each loan" },
+        { src: "/projects/lendloop/admin.png", caption: "Admin: automation health (deliveries in flight, failed deliveries, failed n8n runs), lenders and the Trusted Lender flag" },
+      ],
+    },
+    name: "LendLoop",
+    tagline: "A neighbourhood tool-lending board whose notifications and overdue reminders run through signed, idempotent n8n workflows.",
+    category: "Full-Stack · Automation",
+    accent: "peach",
+    status: "pilot",
+    year: "2026",
+    github: "https://github.com/Alielber1010/lendloop",
+    demo: "https://lendloop-henna.vercel.app",
+    summary:
+      "LendLoop lets neighbours list the tools they're happy to lend, ask to borrow each other's tools for a few days, and approve, decline or mark loans returned. Every status change notifies the other person, and a daily job reminds borrowers when a tool is overdue. The app is Next.js with Clerk sign-in, and all data and permission checks live in Convex. The automations run in n8n on my own server. The interesting part is the link between the two: every message is a JWT signed with HMAC-SHA256 that also covers a hash of the exact body, each direction has its own key, and every write-back is idempotent, so retries never send a second notification. Events go through an outbox in the same transaction as the status change and are retried with backoff. Failures show up on the loan card and on an admin automation-health page.",
+    outcomes: [
+      "Live demo on Vercel, with Convex in the cloud and 4 n8n workflows on my VPS behind a Cloudflare Tunnel",
+      "Signed in both directions, one key per direction: missing, wrong-key, tampered, expired or wrong-audience requests all get a 401",
+      "Idempotent end to end: running the overdue workflow twice sends one reminder, and redelivered events produce exactly one notification",
+      "Outbox pattern with retries at 30 s, 2, 8 and 32 min, and failures shown on the loan and in Admin",
+      "Access control enforced in Convex and tested with two real users: every cross-user action is denied",
+      "Data kept to a minimum: no emails in tokens or payloads, and signed-out visitors see tool name and category only",
+    ],
+    stack: ["Next.js 16", "TypeScript", "Convex", "Clerk", "n8n (self-hosted)", "JWT · HMAC-SHA256", "Docker · Cloudflare Tunnel", "Vercel"],
+    nodes: [
+      {
+        id: "neighbour", label: "Neighbour", kind: "input", x: 0, y: 180, tech: "Web, mobile-friendly",
+        summary: "Lists tools, asks to borrow one for a date range, and answers requests for their own tools.",
+        io: { in: "Tool, dates, a short note", out: "Loan request" },
+      },
+      {
+        id: "clerk", label: "Clerk", kind: "tool", x: 300, y: -40, tech: "JWT template “convex”",
+        summary: "Sign-in. The token Convex gets carries first name, last name and username, and no email.",
+      },
+      {
+        id: "app", label: "Next.js App", kind: "service", x: 300, y: 180, tech: "App Router · Vercel",
+        summary: "The board, my listings, my requests, incoming requests, inbox and admin pages. It only hides buttons; it decides nothing.",
+        io: { in: "Clicks", out: "Convex queries and mutations" },
+      },
+      {
+        id: "convex", label: "Convex Functions", kind: "service", x: 620, y: 180, tech: "Queries · mutations · scheduler",
+        summary: "Where every rule lives: who may approve, edit, cancel or moderate, and which dates are allowed.",
+        responsibilities: [
+          "Role stored in Convex, never read from a claim the browser could influence",
+          "“Not found” and “not yours” return the same error, so ids can't be probed",
+          "No past dates, at most 30 days, no overlap with an approved loan, one pending request per tool",
+          "Retries failed deliveries with backoff, and a cron re-queues events whose run never happened",
+        ],
+        io: { in: "Authenticated call", out: "Status change + outbox event" },
+      },
+      {
+        id: "db", label: "Convex Tables", kind: "data", x: 620, y: 400, tech: "Outbox · activity · inbox",
+        summary: "Users, tools, loans, the automation outbox, loan activity, notifications and automation errors.",
+        responsibilities: [
+          "Loan status and its outbox row commit in one transaction",
+          "“Upcoming”, “on loan” and “overdue” are worked out from the dates, never stored",
+        ],
+      },
+      {
+        id: "n8n", label: "Request Notification", kind: "service", x: 940, y: 180, tech: "n8n webhook · JWT auth",
+        summary: "Checks the signature, the body hash and the event id, writes the message, delivers it and reports back.",
+        responsibilities: [
+          "Unsigned requests are rejected before a run even starts",
+          "Answers {\"ok\":true} only from the last node, so a run that dies midway is retried",
+          "The delivery node is a mock (an upsert into an n8n data table); swapping in email or Slack changes one node",
+        ],
+        io: { in: "Signed loan event", out: "Signed write-back" },
+      },
+      {
+        id: "reminders", label: "Overdue Reminders", kind: "service", x: 940, y: -40, tech: "n8n · daily 09:00",
+        summary: "Fetches overdue loans from Convex (signed), reminds each borrower, and records sent or failed.",
+      },
+      {
+        id: "http", label: "Convex HTTP Actions", kind: "service", x: 1260, y: 180, tech: "HS256 verify · 16 KB cap",
+        summary: "Checks every n8n call, then runs an idempotent internal mutation keyed by event or by loan and day.",
+        code: {
+          lang: "ts",
+          snippet: `if (header.alg !== "HS256") return null; // never "none"
+const valid = await crypto.subtle.verify(        // constant time
+  "HMAC", await hmacKey(secret), sig, enc.encode(\`\${h}.\${c}\`));
+if (!valid) return null;
+if (claims.iss !== issuer || !aud.includes(audience)) return null;
+if (claims.bodySha256 !== await sha256Hex(body)) return null;`,
+        },
+        io: { in: "Bearer JWT + body", out: "200, 401 or 422" },
+      },
+      {
+        id: "inbox", label: "Inbox & Loan Activity", kind: "output", x: 1260, y: 400, tech: "In-app",
+        summary: "The message lands in the right person's inbox, and the loan card shows “Lender notified (in-app), just now”.",
+      },
+      {
+        id: "admin", label: "Automation Health", kind: "output", x: 940, y: 400, tech: "Admin page",
+        summary: "Deliveries in flight, failed deliveries and failed n8n runs, reported by the n8n error workflow.",
+      },
+    ],
+    edges: [
+      { id: "l1", from: "neighbour", to: "app" },
+      { id: "l2", from: "app", to: "clerk", fromSide: "top", toSide: "bottom", label: "sign in" },
+      { id: "l3", from: "app", to: "convex", label: "Clerk JWT" },
+      { id: "l4", from: "convex", to: "db", fromSide: "bottom", toSide: "top", kind: "data", label: "change + outbox" },
+      { id: "l5", from: "convex", to: "n8n", label: "signed event" },
+      { id: "l6", from: "n8n", to: "http", label: "signed write-back" },
+      { id: "l7", from: "convex", to: "reminders", fromSide: "top", toSide: "left", kind: "data", label: "overdue loans" },
+      { id: "l8", from: "reminders", to: "http", fromSide: "right", toSide: "top", label: "reminder sent" },
+      { id: "l9", from: "http", to: "inbox", fromSide: "bottom", toSide: "top", kind: "data", label: "idempotent" },
+      { id: "l10", from: "db", to: "admin", kind: "data", label: "failures" },
+    ],
+    trace: {
+      prompt: "Omar asks to borrow Maya's cordless drill for the weekend.",
+      steps: [
+        { node: "neighbour", title: "Request sent", detail: "Omar picks Saturday to Sunday on the drill and adds “Putting up shelves this weekend.”", ms: 30 },
+        { node: "app", edges: ["l1", "l3"], title: "Signed-in call", detail: "The Clerk token carries Omar's name only. The page calls the Convex mutation.", ms: 40 },
+        { node: "convex", title: "Rules checked", detail: "Not his own tool, under 30 days, no overlap with an approved loan, no other pending request.", ms: 50 },
+        { node: "db", edges: ["l4"], title: "One transaction", detail: "The loan row and a loan.requested outbox event are saved together.", ms: 20 },
+        { node: "n8n", edges: ["l5"], title: "Webhook verified", detail: "n8n checks the JWT, the body hash and that jti matches the event id, then writes Maya's message.", ms: 400 },
+        { node: "http", edges: ["l6"], title: "Write-back verified", detail: "Convex checks n8n's signature with the other key and records notify:<eventId> once.", ms: 150 },
+        { node: "inbox", edges: ["l9"], title: "Maya notified", detail: "The message is in Maya's inbox and the loan card shows “Lender notified (in-app)”.", ms: 60 },
+        { node: "reminders", edges: ["l7", "l8"], title: "Monday: overdue", detail: "The 09:00 run finds the drill not returned and reminds Omar. Running it again sends nothing new.", ms: 800 },
+      ],
+    },
+    decisions: [
+      {
+        title: "Sign a JWT, not a bare HMAC header",
+        why: "n8n can sign and verify JWTs with its built-in node and an encrypted credential. A raw HMAC in n8n would put the secret in a Code node or an environment variable, where it leaks into exported workflows and execution data. A bodySha256 claim makes the signature cover the payload, not just the sender.",
+        tradeoff: "A captured request can be replayed within its 5-minute window; that is harmless only because every write is idempotent.",
+      },
+      {
+        title: "One key per direction",
+        why: "Convex → n8n and n8n → Convex use different secrets, and issuer and audience are fixed, so a leaked key can't forge traffic the other way or be bounced back at its sender.",
+      },
+      {
+        title: "An outbox in the same transaction",
+        why: "The status change and its event commit together, so an event exists exactly when the change happened. Delivery runs later with retries, and a cron picks up anything that was never sent.",
+        tradeoff: "More moving parts than calling the webhook straight from the mutation.",
+      },
+      {
+        title: "Don't trust a bare 200",
+        why: "n8n answers an empty 200 when a run dies midway. Convex counts an event as delivered only when the last node answers {\"ok\":true}, and retries otherwise.",
+      },
+      {
+        title: "Permissions live in Convex, not the UI",
+        why: "The role is stored in Convex and admins can't be created from the browser. The UI only hides buttons; every mutation checks who is asking.",
+      },
+    ],
+  },
+
+  {
     slug: "nani",
     builtBy: "Solo: product, character and brand, Flutter app, Supabase backend, AI, payments and the admin",
     brand: {
