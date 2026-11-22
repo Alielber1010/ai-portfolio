@@ -1,5 +1,6 @@
 import Image from "next/image";
-import { ArrowDown, Mail } from "lucide-react";
+import Link from "next/link";
+import { ArrowDown, ArrowUpRight, Mail } from "lucide-react";
 import { GitHubIcon } from "@/components/GitHubIcon";
 import { LinkedInIcon } from "@/components/LinkedInIcon";
 import { TopBar } from "@/components/TopBar";
@@ -7,6 +8,7 @@ import { HeroShowcase } from "@/components/registry/HeroShowcase";
 import { HowIBuild } from "@/components/registry/HowIBuild";
 import { Registry } from "@/components/registry/Registry";
 import { KINDS } from "@/lib/kinds";
+import { articles } from "@/lib/articles";
 import { profile } from "@/lib/profile";
 import { projects } from "@/lib/projects";
 
@@ -99,11 +101,40 @@ export default function Home() {
 
       <HowIBuild />
 
+      {/* Articles */}
+      <section id="articles" className="mx-auto max-w-7xl scroll-mt-20 px-4 py-16 sm:px-6">
+        <div className="mb-8 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="font-mono text-xs uppercase tracking-widest text-ink-faint">03 — Articles</p>
+            <h2 className="mt-2 font-display text-4xl sm:text-5xl">What I tested and found</h2>
+          </div>
+          <p className="max-w-sm text-sm text-ink-soft">How I ran each test, and the results.</p>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          {articles.map((a) => (
+            <Link
+              key={a.slug}
+              href={`/articles/${a.slug}`}
+              className="group flex flex-col gap-3 rounded-[28px] border border-line bg-card p-6 shadow-[var(--shadow-soft)] transition hover:border-ink sm:p-8"
+            >
+              <span className="font-mono text-[11px] uppercase tracking-wider text-ink-faint">
+                {new Date(a.date).toLocaleDateString("en-GB", { month: "short", year: "numeric" })} · {a.tags.join(" · ")}
+              </span>
+              <h3 className="font-display text-2xl leading-tight">{a.title}</h3>
+              <p className="text-sm text-ink-soft">{a.summary}</p>
+              <span className="mt-auto flex items-center gap-1 pt-2 text-sm font-semibold text-lavender-ink">
+                Read the findings <ArrowUpRight className="size-4 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
       {/* Legend + stack */}
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
         <div className="grid gap-6 rounded-[32px] border border-line bg-card p-6 shadow-[var(--shadow-soft)] sm:p-10 lg:grid-cols-2">
           <div>
-            <p className="font-mono text-xs uppercase tracking-widest text-ink-faint">03 — How to read a system</p>
+            <p className="font-mono text-xs uppercase tracking-widest text-ink-faint">04 — How to read a system</p>
             <h2 className="mt-2 font-display text-3xl sm:text-4xl">Every colour means something.</h2>
           </div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
